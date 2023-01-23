@@ -1,50 +1,43 @@
 package routes
 
-import "net/http"
+import (
+	"api-dvbk-socialNetwork/src/controllers"
+	"net/http"
+)
 
-var routesUser = []Route{
+var userRoutes = []Route{
 	{
-		URI:    "/users",
-		Method: http.MethodPost,
-		Function: func(w http.ResponseWriter, r *http.Request) {
-
-		},
-		NeedAuth: false,
+		URI:        "/users",
+		Method:     http.MethodPost,
+		Controller: controllers.CreateUser,
+		NeedAuth:   false,
 	},
 
 	{
-		URI:    "/users",
-		Method: http.MethodGet,
-		Function: func(w http.ResponseWriter, r *http.Request) {
-
-		},
-		NeedAuth: false,
+		URI:        "/users",
+		Method:     http.MethodGet,
+		Controller: controllers.SearchUsers,
+		NeedAuth:   false,
 	},
 
 	{
-		URI:    "/users/{userId}",
-		Method: http.MethodGet,
-		Function: func(w http.ResponseWriter, r *http.Request) {
-
-		},
-		NeedAuth: false,
+		URI:        "/users/{userId}",
+		Method:     http.MethodGet,
+		Controller: controllers.SearchUser,
+		NeedAuth:   false,
 	},
 
 	{
-		URI:    "/users/{userId}",
-		Method: http.MethodPut,
-		Function: func(w http.ResponseWriter, r *http.Request) {
-
-		},
-		NeedAuth: false,
+		URI:        "/users/{userId}",
+		Method:     http.MethodPut,
+		Controller: controllers.UpdateUser,
+		NeedAuth:   false,
 	},
 
 	{
-		URI:    "/users/{userId}",
-		Method: http.MethodDelete,
-		Function: func(w http.ResponseWriter, r *http.Request) {
-
-		},
-		NeedAuth: false,
+		URI:        "/users/{userId}",
+		Method:     http.MethodDelete,
+		Controller: controllers.DeleteUser,
+		NeedAuth:   false,
 	},
 }

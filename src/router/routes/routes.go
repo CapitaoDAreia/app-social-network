@@ -1,11 +1,26 @@
 package routes
 
-import "net/http"
+import (
+	"net/http"
 
-//Routes is a struct that represents API routes
+	"github.com/gorilla/mux"
+)
+
+// Routes is a struct that represents API routes
 type Route struct {
-	URI      string
-	Method   string
-	Function func(http.ResponseWriter, *http.Request)
-	NeedAuth bool
+	URI        string
+	Method     string
+	Controller func(http.ResponseWriter, *http.Request)
+	NeedAuth   bool
+}
+
+// Config all routes in router
+func Configurate(r *mux.Router) *mux.Router {
+	routes := userRoutes
+
+	for _, route := range routes {
+		r.HandleFunc(route.URI, route.Controller).Methods(route.Method)
+	}
+
+	return r
 }
