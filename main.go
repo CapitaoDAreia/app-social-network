@@ -1,7 +1,14 @@
 package main
 
-import "fmt"
+import (
+	"api-dvbk-socialNetwork/src/router"
+	"log"
+	"net/http"
+)
 
 func main() {
-	fmt.Println("Running API...")
+	const PORT string = `:5000`
+	r := router.Generate()
+
+	log.Fatal(http.ListenAndServe(PORT, r))
 }
