@@ -4,7 +4,7 @@ import "net/http"
 
 //Creates a user in database
 func CreateUser(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("CriateUser..."))
+	w.Write([]byte("CreateUser..."))
 }
 
 //Search for users in database
