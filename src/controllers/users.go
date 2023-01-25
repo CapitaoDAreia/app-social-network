@@ -5,6 +5,7 @@ import (
 	"api-dvbk-socialNetwork/src/models"
 	"api-dvbk-socialNetwork/src/repository"
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -34,7 +35,13 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 	userRepository := repository.NewUserRepository(DB)
 
 	//Use CreateUser, a method of usersRepository, to Create a newUser feedinf the method with the userReceived in bodyRequest.
-	userRepository.CreateUser(user)
+	userID, err := userRepository.CreateUser(user)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	w.WriteHeader(201)
+	w.Write([]byte(fmt.Sprintf("Inserted ID: %v", userID)))
 }
 
 // Search for users in database

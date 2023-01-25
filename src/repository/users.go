@@ -17,5 +17,23 @@ func NewUserRepository(db *sql.DB) *usersRepository {
 // CreateUser Creates a user on database.
 // This is a method of users struct.
 func (u usersRepository) CreateUser(user models.User) (uint64, error) {
-	return 0, nil
+	statement, err := u.db.Prepare(
+		"insert into users (username, nick, email, password) values (?, ?, ?, ?)",
+	)
+	if err != nil {
+		return 0, err
+	}
+	defer statement.Close()
+
+	execResult, err := u.db.Exec(user.Username, user.Nick, user.Email, user.Password)
+	if err != nil {
+		return 0, err
+	}
+
+	lastInsertedID, err := execResult.LastInsertId()
+	if err != nil {
+		return 0, err
+	}
+
+	return uint64(lastInsertedID), nil
 }
