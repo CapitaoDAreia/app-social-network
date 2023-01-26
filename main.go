@@ -1,7 +1,7 @@
 package main
 
 import (
-	config "api-dvbk-socialNetwork/src/Config"
+	config "api-dvbk-socialNetwork/src/config"
 	"api-dvbk-socialNetwork/src/router"
 	"fmt"
 	"log"

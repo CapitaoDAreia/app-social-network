@@ -1,7 +1,7 @@
 package database
 
 import (
-	config "api-dvbk-socialNetwork/src/Config"
+	config "api-dvbk-socialNetwork/src/config"
 	"database/sql"
 
 	_ "github.com/go-sql-driver/mysql"

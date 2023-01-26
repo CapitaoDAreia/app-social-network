@@ -3,6 +3,7 @@ package repository
 import (
 	"api-dvbk-socialNetwork/src/models"
 	"database/sql"
+	"fmt"
 )
 
 type usersRepository struct {
@@ -18,20 +19,25 @@ func NewUserRepository(db *sql.DB) *usersRepository {
 // This is a method of users struct.
 func (u usersRepository) CreateUser(user models.User) (uint64, error) {
 	statement, err := u.db.Prepare(
-		"insert into users (username, nick, email, password) values (?, ?, ?, ?)",
+		"insert into users (username, nick, email, password) values(?, ?, ?, ?)",
 	)
 	if err != nil {
+		fmt.Println("users.go 25")
 		return 0, err
 	}
 	defer statement.Close()
 
-	execResult, err := u.db.Exec(user.Username, user.Nick, user.Email, user.Password)
+	execResult, err := statement.Exec(user.Username, user.Nick, user.Email, user.Password)
 	if err != nil {
+		fmt.Println("users.go 32")
+
 		return 0, err
 	}
 
 	lastInsertedID, err := execResult.LastInsertId()
 	if err != nil {
+		fmt.Println("users.go 29")
+
 		return 0, err
 	}
 

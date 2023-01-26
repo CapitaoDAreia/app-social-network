@@ -16,19 +16,19 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 	//Catch bodyRequest
 	bodyRequest, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("user l19", err)
 	}
 
 	//Put bodyRequest into a user typed based on a model
 	var user models.User
 	if err := json.Unmarshal(bodyRequest, &user); err != nil {
-		log.Fatal(err)
+		log.Fatal("user l25", err)
 	}
 
 	//Open connection with database
 	DB, err := database.ConnectWithDatabase()
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("user l31", err)
 	}
 
 	//Create a newUser repo feeding it with DB connection previously opened
@@ -37,7 +37,7 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 	//Use CreateUser, a method of usersRepository, to Create a newUser feedinf the method with the userReceived in bodyRequest.
 	userID, err := userRepository.CreateUser(user)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("user l40", err)
 	}
 
 	w.WriteHeader(201)

@@ -35,7 +35,7 @@ func LoadAmbientConfig() {
 	}
 
 	//Catch data from .env to compouse the key to connect with DB
-	StringDatabaseKey = fmt.Sprintf("%s:%s@/%s?charset=utf8&parseTime=True&Loc=Local",
+	StringDatabaseKey = fmt.Sprintf("%s:%s@/%s?charset=utf8&parseTime=True&loc=Local",
 		os.Getenv("DB_USER"),
 		os.Getenv("DB_PASSWORD"),
 		os.Getenv("DB_NAME_DATABASE"),
