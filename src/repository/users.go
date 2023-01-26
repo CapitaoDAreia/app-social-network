@@ -3,6 +3,7 @@ package repository
 import (
 	"api-dvbk-socialNetwork/src/models"
 	"database/sql"
+	"fmt"
 )
 
 type usersRepository struct {
@@ -36,4 +37,38 @@ func (u usersRepository) CreateUser(user models.User) (uint64, error) {
 	}
 
 	return uint64(lastInsertedID), nil
+}
+
+// Search for users by username or nick
+func (u usersRepository) SearchUsers(usernameOrNickQuery string) ([]models.User, error) {
+	usernameOrNickQuery = fmt.Sprintf("%%%s%%", usernameOrNickQuery) //%usernameOrNickQuery%
+
+	rows, err := u.db.Query(
+		"select id, username, nick, email, createdAt from users where username LIKE ? or nick LIKE ?",
+		usernameOrNickQuery, usernameOrNickQuery,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var users []models.User
+
+	for rows.Next() {
+		var user models.User
+
+		if err = rows.Scan(
+			&user.ID,
+			&user.Username,
+			&user.Nick,
+			&user.Email,
+			&user.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+
+		users = append(users, user)
+	}
+
+	return users, nil
 }
