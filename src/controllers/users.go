@@ -30,6 +30,7 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Fatal("user l31", err)
 	}
+	defer DB.Close()
 
 	//Create a newUser repo feeding it with DB connection previously opened
 	userRepository := repository.NewUserRepository(DB)
