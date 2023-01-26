@@ -23,6 +23,12 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 	var user models.User
 	if err := json.Unmarshal(bodyRequest, &user); err != nil {
 		responses.FormatResponseToCustomError(w, 400, err)
+		return
+	}
+
+	if err := user.PrepareUserData(); err != nil {
+		responses.FormatResponseToCustomError(w, 400, err)
+		return
 	}
 
 	//Open connection with database
@@ -43,7 +49,7 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	responses.FormatResponseToJSON(w, 200, user)
+	responses.FormatResponseToJSON(w, 201, user)
 }
 
 // Search for users in database
