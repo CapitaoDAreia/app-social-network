@@ -4,10 +4,9 @@ import (
 	"api-dvbk-socialNetwork/src/database"
 	"api-dvbk-socialNetwork/src/models"
 	"api-dvbk-socialNetwork/src/repository"
+	"api-dvbk-socialNetwork/src/responses"
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
-	"log"
 	"net/http"
 )
 
@@ -16,19 +15,21 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 	//Catch bodyRequest
 	bodyRequest, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		log.Fatal("user l19", err)
+		responses.FormatResponseToCustomError(w, http.StatusUnprocessableEntity, err)
+		return
 	}
 
 	//Put bodyRequest into a user typed based on a model
 	var user models.User
 	if err := json.Unmarshal(bodyRequest, &user); err != nil {
-		log.Fatal("user l25", err)
+		responses.FormatResponseToCustomError(w, 400, err)
 	}
 
 	//Open connection with database
 	DB, err := database.ConnectWithDatabase()
 	if err != nil {
-		log.Fatal("user l31", err)
+		responses.FormatResponseToCustomError(w, 500, err)
+		return
 	}
 	defer DB.Close()
 
@@ -36,13 +37,13 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 	userRepository := repository.NewUserRepository(DB)
 
 	//Use CreateUser, a method of usersRepository, to Create a newUser feedinf the method with the userReceived in bodyRequest.
-	userID, err := userRepository.CreateUser(user)
+	user.ID, err = userRepository.CreateUser(user)
 	if err != nil {
-		log.Fatal("user l40", err)
+		responses.FormatResponseToCustomError(w, 500, err)
+		return
 	}
 
-	w.WriteHeader(201)
-	w.Write([]byte(fmt.Sprintf("Inserted ID: %v", userID)))
+	responses.FormatResponseToJSON(w, 200, user)
 }
 
 // Search for users in database
