@@ -16,7 +16,11 @@ type User struct {
 	CreatedAt time.Time `json:"CreatedAt,omitempty"`
 }
 
-func (user *User) validateUserData() error {
+type UserStageFlags struct {
+	considerPassword bool
+}
+
+func (user *User) validateUserData(stage UserStageFlags) error {
 	if user.Username == "" {
 		return errors.New("username is empty")
 	}
@@ -29,7 +33,7 @@ func (user *User) validateUserData() error {
 		return errors.New("email is empty")
 	}
 
-	if user.Password == "" {
+	if stage.considerPassword && user.Password == "" {
 		return errors.New("password is empty")
 	}
 
@@ -45,7 +49,7 @@ func (user *User) formatUserData() {
 
 // Prepare user data to send for DB
 func (user *User) PrepareUserData() error {
-	if err := user.validateUserData(); err != nil {
+	if err := user.validateUserData(UserStageFlags{considerPassword: false}); err != nil {
 		return err
 	}
 
