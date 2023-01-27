@@ -72,3 +72,28 @@ func (u usersRepository) SearchUsers(usernameOrNickQuery string) ([]models.User,
 
 	return users, nil
 }
+
+func (u usersRepository) SearchUser(requestID uint64) (models.User, error) {
+	rows, err := u.db.Query(
+		"select id, username, nick, email, createdAt from users where id=?", requestID,
+	)
+	if err != nil {
+		return models.User{}, err
+	}
+	defer rows.Close()
+
+	var user models.User
+	for rows.Next() {
+		if err := rows.Scan(
+			&user.ID,
+			&user.Username,
+			&user.Nick,
+			&user.Email,
+			&user.CreatedAt,
+		); err != nil {
+			return models.User{}, err
+		}
+	}
+
+	return user, nil
+}

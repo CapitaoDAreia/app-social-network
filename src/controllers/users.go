@@ -8,7 +8,10 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"net/http"
+	"strconv"
 	"strings"
+
+	"github.com/gorilla/mux"
 )
 
 // Creates a user in database
@@ -76,7 +79,30 @@ func SearchUsers(w http.ResponseWriter, r *http.Request) {
 
 // Search for an specific user in database
 func SearchUser(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("SearcheUsers..."))
+	params := mux.Vars(r)
+
+	requestID, err := strconv.ParseUint(params["userId"], 10, 64)
+	if err != nil {
+		responses.FormatResponseToCustomError(w, http.StatusBadRequest, err)
+		return
+	}
+
+	DB, err := database.ConnectWithDatabase()
+	if err != nil {
+		responses.FormatResponseToCustomError(w, 500, err)
+		return
+	}
+	defer DB.Close()
+
+	userRepository := repository.NewUserRepository(DB)
+
+	user, err := userRepository.SearchUser(requestID)
+	if err != nil {
+		responses.FormatResponseToCustomError(w, 500, err)
+		return
+	}
+
+	responses.FormatResponseToJSON(w, 200, user)
 }
 
 // Update an user in database
