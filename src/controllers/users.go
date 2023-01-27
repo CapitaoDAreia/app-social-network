@@ -30,7 +30,7 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := user.PrepareUserData(); err != nil {
+	if err := user.PrepareUserData(models.UserStageFlags{ConsiderPassword: true}); err != nil {
 		responses.FormatResponseToCustomError(w, 400, err)
 		return
 	}
@@ -107,7 +107,47 @@ func SearchUser(w http.ResponseWriter, r *http.Request) {
 
 // Update an user in database
 func UpdateUser(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("UpdateUser..."))
+	parameters := mux.Vars(r)
+
+	requestID, err := strconv.ParseUint(parameters["userId"], 10, 64)
+	if err != nil {
+		responses.FormatResponseToCustomError(w, 500, err)
+		return
+	}
+
+	bodyRequest, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		responses.FormatResponseToCustomError(w, 500, err)
+		return
+	}
+
+	var user models.User
+	if err := json.Unmarshal(bodyRequest, &user); err != nil {
+		responses.FormatResponseToCustomError(w, 500, err)
+		return
+	}
+
+	if err := user.PrepareUserData(models.UserStageFlags{ConsiderPassword: false}); err != nil {
+		responses.FormatResponseToCustomError(w, 500, err)
+		return
+	}
+
+	DB, err := database.ConnectWithDatabase()
+	if err != nil {
+		responses.FormatResponseToCustomError(w, 500, err)
+		return
+	}
+	defer DB.Close()
+
+	repository := repository.NewUserRepository(DB)
+
+	err = repository.UpdateUser(requestID, user)
+	if err != nil {
+		responses.FormatResponseToCustomError(w, 500, err)
+		return
+	}
+
+	responses.FormatResponseToJSON(w, 204, nil)
 }
 
 // Delete an user in database

@@ -17,7 +17,7 @@ type User struct {
 }
 
 type UserStageFlags struct {
-	considerPassword bool
+	ConsiderPassword bool
 }
 
 func (user *User) validateUserData(stage UserStageFlags) error {
@@ -33,7 +33,7 @@ func (user *User) validateUserData(stage UserStageFlags) error {
 		return errors.New("email is empty")
 	}
 
-	if stage.considerPassword && user.Password == "" {
+	if stage.ConsiderPassword && user.Password == "" {
 		return errors.New("password is empty")
 	}
 
@@ -48,8 +48,8 @@ func (user *User) formatUserData() {
 }
 
 // Prepare user data to send for DB
-func (user *User) PrepareUserData() error {
-	if err := user.validateUserData(UserStageFlags{considerPassword: false}); err != nil {
+func (user *User) PrepareUserData(stage UserStageFlags) error {
+	if err := user.validateUserData(stage); err != nil {
 		return err
 	}
 

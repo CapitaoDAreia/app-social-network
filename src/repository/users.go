@@ -97,3 +97,24 @@ func (u usersRepository) SearchUser(requestID uint64) (models.User, error) {
 
 	return user, nil
 }
+
+func (u usersRepository) UpdateUser(ID uint64, user models.User) error {
+	statement, err := u.db.Prepare(
+		"update users set username=?, nick=?, email=? where id=?",
+	)
+	if err != nil {
+		return err
+	}
+	defer statement.Close()
+
+	if _, err := statement.Exec(
+		user.Username,
+		user.Nick,
+		user.Email,
+		ID,
+	); err != nil {
+		return err
+	}
+
+	return nil
+}
