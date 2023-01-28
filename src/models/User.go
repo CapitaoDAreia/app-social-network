@@ -4,6 +4,8 @@ import (
 	"errors"
 	"strings"
 	"time"
+
+	"github.com/badoux/checkmail"
 )
 
 // User represents an user
@@ -33,6 +35,10 @@ func (user *User) validateUserData(stage UserStageFlags) error {
 		return errors.New("email is empty")
 	}
 
+	if err := checkmail.ValidateFormat(user.Email); err != nil {
+		return errors.New("email is invalid")
+	}
+
 	if stage.ConsiderPassword && user.Password == "" {
 		return errors.New("password is empty")
 	}
@@ -49,10 +55,11 @@ func (user *User) formatUserData() {
 
 // Prepare user data to send for DB
 func (user *User) PrepareUserData(stage UserStageFlags) error {
+	user.formatUserData()
+
 	if err := user.validateUserData(stage); err != nil {
 		return err
 	}
 
-	user.formatUserData()
 	return nil
 }
