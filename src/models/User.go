@@ -1,6 +1,7 @@
 package models
 
 import (
+	"api-dvbk-socialNetwork/src/security"
 	"errors"
 	"strings"
 	"time"
@@ -19,7 +20,8 @@ type User struct {
 }
 
 type UserStageFlags struct {
-	ConsiderPassword bool
+	CanConsiderPasswordInValidateUser bool
+	CanHashPassword                   bool
 }
 
 func (user *User) validateUserData(stage UserStageFlags) error {
@@ -39,23 +41,36 @@ func (user *User) validateUserData(stage UserStageFlags) error {
 		return errors.New("email is invalid")
 	}
 
-	if stage.ConsiderPassword && user.Password == "" {
+	if stage.CanConsiderPasswordInValidateUser && user.Password == "" {
 		return errors.New("password is empty")
 	}
 
 	return nil
 }
 
-func (user *User) formatUserData() {
+func (user *User) formatUserData(stage UserStageFlags) error {
 	user.Username = strings.TrimSpace(user.Username)
 	user.Nick = strings.TrimSpace(user.Nick)
 	user.Email = strings.TrimSpace(user.Email)
 	user.Password = strings.TrimSpace(user.Password)
+
+	if stage.CanHashPassword {
+		hashedPassword, err := security.Hash(user.Password)
+		if err != nil {
+			return err
+		}
+
+		user.Password = string(hashedPassword)
+	}
+
+	return nil
 }
 
 // Prepare user data to send for DB
 func (user *User) PrepareUserData(stage UserStageFlags) error {
-	user.formatUserData()
+	if err := user.formatUserData(UserStageFlags{CanHashPassword: true}); err != nil {
+		return err
+	}
 
 	if err := user.validateUserData(stage); err != nil {
 		return err

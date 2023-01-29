@@ -30,7 +30,7 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := user.PrepareUserData(models.UserStageFlags{ConsiderPassword: true}); err != nil {
+	if err := user.PrepareUserData(models.UserStageFlags{CanConsiderPasswordInValidateUser: true}); err != nil {
 		responses.FormatResponseToCustomError(w, 400, err)
 		return
 	}
@@ -127,7 +127,7 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := user.PrepareUserData(models.UserStageFlags{ConsiderPassword: false}); err != nil {
+	if err := user.PrepareUserData(models.UserStageFlags{CanConsiderPasswordInValidateUser: false}); err != nil {
 		responses.FormatResponseToCustomError(w, 500, err)
 		return
 	}
