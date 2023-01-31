@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"api-dvbk-socialNetwork/src/config"
 	"time"
 
 	jwt "github.com/dgrijalva/jwt-go"
@@ -18,5 +19,5 @@ func GenerateToken(userID uint64) (string, error) {
 
 	userToken := jwt.NewWithClaims(jwt.SigningMethodHS256, permissions)
 
-	return userToken.SignedString(mockedKeySecret)
+	return userToken.SignedString([]byte(config.SecretKey))
 }

@@ -18,6 +18,9 @@ var (
 
 	//Servs to handle errors while catch PORT value in .env
 	err error
+
+	//Store the secretKey generated to compouse userTokens
+	SecretKey []byte
 )
 
 // Iitialize ambient variables
@@ -40,6 +43,8 @@ func LoadAmbientConfig() {
 		os.Getenv("DB_PASSWORD"),
 		os.Getenv("DB_NAME_DATABASE"),
 	)
+
+	SecretKey = []byte(os.Getenv("SecretKey"))
 
 	fmt.Printf("DatabaseKey: %v\n", StringDatabaseKey)
 }

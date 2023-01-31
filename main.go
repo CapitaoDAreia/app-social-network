@@ -1,12 +1,17 @@
 package main
 
 import (
+	"api-dvbk-socialNetwork/src/auth"
 	config "api-dvbk-socialNetwork/src/config"
 	"api-dvbk-socialNetwork/src/router"
 	"fmt"
 	"log"
 	"net/http"
 )
+
+func init() {
+	auth.GenerateSecretKey()
+}
 
 func main() {
 	config.LoadAmbientConfig()
