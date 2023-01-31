@@ -137,6 +137,7 @@ func (u usersRepository) SearchUserByEmail(email string) (models.User, error) {
 	if err != nil {
 		return models.User{}, err
 	}
+	defer row.Close()
 
 	var user models.User
 

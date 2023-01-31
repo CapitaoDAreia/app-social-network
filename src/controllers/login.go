@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"api-dvbk-socialNetwork/src/auth"
 	"api-dvbk-socialNetwork/src/database"
 	"api-dvbk-socialNetwork/src/models"
 	"api-dvbk-socialNetwork/src/repository"
@@ -44,5 +45,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	responses.FormatResponseToJSON(w, 200, "You're in!")
+	userToken, _ := auth.GenerateToken(user.ID)
+
+	responses.FormatResponseToJSON(w, 200, userToken)
 }
