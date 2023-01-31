@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"api-dvbk-socialNetwork/src/middlewares"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -19,8 +20,18 @@ func Configurate(r *mux.Router) *mux.Router {
 	routes := userRoutes
 	routes = append(routes, LoginRoute)
 
+	// r.HandleFunc(route.URI, middlewares.Authenticate(route.Controller),).Methods(route.Method)
+
 	for _, route := range routes {
-		r.HandleFunc(route.URI, route.Controller).Methods(route.Method)
+		if route.NeedAuth {
+			r.HandleFunc(route.URI,
+				middlewares.Logger(
+					middlewares.Authenticate(route.Controller),
+				),
+			).Methods(route.Method)
+		} else {
+			r.HandleFunc(route.URI, route.Controller).Methods(route.Method)
+		}
 	}
 
 	return r
