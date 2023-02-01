@@ -1,11 +1,13 @@
 package controllers
 
 import (
+	"api-dvbk-socialNetwork/src/auth"
 	"api-dvbk-socialNetwork/src/database"
 	"api-dvbk-socialNetwork/src/models"
 	"api-dvbk-socialNetwork/src/repository"
 	"api-dvbk-socialNetwork/src/responses"
 	"encoding/json"
+	"errors"
 	"io/ioutil"
 	"net/http"
 	"strconv"
@@ -115,9 +117,20 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	tokenUserID, err := auth.ExtractUserID(r)
+	if err != nil {
+		responses.FormatResponseToCustomError(w, http.StatusUnauthorized, err)
+		return
+	}
+
+	if requestID != tokenUserID {
+		responses.FormatResponseToCustomError(w, http.StatusForbidden, err)
+		return
+	}
+
 	bodyRequest, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		responses.FormatResponseToCustomError(w, 500, err)
+		responses.FormatResponseToCustomError(w, 500, errors.New("Are you sure that is really you?"))
 		return
 	}
 
