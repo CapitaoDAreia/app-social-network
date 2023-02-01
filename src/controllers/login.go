@@ -45,7 +45,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userToken, err := auth.GenerateToken(user.ID)
+	userToken, err := auth.GenerateToken(foundedUser.ID)
 	if err != nil {
 		responses.FormatResponseToCustomError(w, 500, err)
 		return

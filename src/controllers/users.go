@@ -124,13 +124,13 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if requestID != tokenUserID {
-		responses.FormatResponseToCustomError(w, http.StatusForbidden, err)
+		responses.FormatResponseToCustomError(w, http.StatusForbidden, errors.New("Are you sure that is really you?"))
 		return
 	}
 
 	bodyRequest, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		responses.FormatResponseToCustomError(w, 500, errors.New("Are you sure that is really you?"))
+		responses.FormatResponseToCustomError(w, 500, err)
 		return
 	}
 
