@@ -2,6 +2,10 @@ package auth
 
 import (
 	"api-dvbk-socialNetwork/src/config"
+	"errors"
+	"fmt"
+	"net/http"
+	"strings"
 	"time"
 
 	jwt "github.com/dgrijalva/jwt-go"
@@ -20,4 +24,41 @@ func GenerateToken(userID uint64) (string, error) {
 	userToken := jwt.NewWithClaims(jwt.SigningMethodHS256, permissions)
 
 	return userToken.SignedString([]byte(config.SecretKey))
+}
+
+// Verifies if token received in Request is valid
+func ValidateToken(r *http.Request) error {
+
+	//takes request token
+	tokenString := extractToken(r)
+
+	//execute a validation in request token to verify if it is valid
+	token, err := jwt.Parse(tokenString, returnVerificationKey)
+	if err != nil {
+		return err
+	}
+
+	//Verify if request token claims equals jwt claims defined previously and if the return of token validated previously
+	if _, tokenHasCorrespondentClaims := token.Claims.(jwt.MapClaims); tokenHasCorrespondentClaims && token.Valid {
+		return nil
+	}
+
+	return errors.New("Invalid Token")
+}
+
+func extractToken(r *http.Request) string {
+	headerToken := r.Header.Get("Authorization")
+	headerTokenSplited := strings.Split(headerToken, " ")
+
+	if hasTwoValues := len(headerTokenSplited) == 2; !hasTwoValues {
+		return " "
+	}
+	return headerTokenSplited[1]
+}
+
+func returnVerificationKey(token *jwt.Token) (interface{}, error) {
+	if _, tokenHasTrueValue := token.Method.(*jwt.SigningMethodHMAC); !tokenHasTrueValue {
+		return nil, fmt.Errorf("Unexpected signature method: %v\n", token.Header["alg"])
+	}
+	return config.SecretKey, nil
 }

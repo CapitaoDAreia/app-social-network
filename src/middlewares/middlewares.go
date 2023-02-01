@@ -1,6 +1,8 @@
 package middlewares
 
 import (
+	"api-dvbk-socialNetwork/src/auth"
+	"api-dvbk-socialNetwork/src/responses"
 	"log"
 	"net/http"
 )
@@ -13,7 +15,12 @@ func Logger(receivedFunc http.HandlerFunc) http.HandlerFunc {
 }
 
 func Authenticate(receivedFunc http.HandlerFunc) http.HandlerFunc {
+
 	return func(w http.ResponseWriter, r *http.Request) {
+		if err := auth.ValidateToken(r); err != nil {
+			responses.FormatResponseToCustomError(w, http.StatusUnauthorized, err)
+			return
+		}
 		receivedFunc(w, r)
 	}
 }
