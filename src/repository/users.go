@@ -242,3 +242,7 @@ func (u usersRepository) SearchWhoAnUserFollow(userID uint64) ([]models.User, er
 
 	return followers, nil
 }
+
+func (u usersRepository) SearchUserPassword(userID uint64) (string, error) {
+	rows, err := u.db.Query(``)
+}

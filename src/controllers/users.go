@@ -359,8 +359,9 @@ func UpdateUserPassword(w http.ResponseWriter, r *http.Request) {
 		responses.FormatResponseToCustomError(w, 500, err)
 		return
 	}
+	defer DB.Close()
 
 	repository := repository.NewUserRepository(DB)
-	//TODO: Call user password
+	returnedPassword, err := repository.SearchUserPassword(requestUserId)
 
 }
