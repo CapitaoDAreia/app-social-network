@@ -297,3 +297,27 @@ func SearchFollowersOfnAnUser(w http.ResponseWriter, r *http.Request) {
 	responses.FormatResponseToJSON(w, 200, followers)
 
 }
+
+func SearchWhoAnUserFollow(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	userID, err := strconv.ParseUint(params["userId"], 10, 64)
+	if err != nil {
+		responses.FormatResponseToCustomError(w, 500, err)
+		return
+	}
+
+	DB, err := database.ConnectWithDatabase()
+	if err != nil {
+		responses.FormatResponseToCustomError(w, 500, err)
+		return
+	}
+
+	repository := repository.NewUserRepository(DB)
+	followers, err := repository.SearchWhoAnUserFollow(userID)
+	if err != nil {
+		responses.FormatResponseToCustomError(w, 500, err)
+		return
+	}
+
+	responses.FormatResponseToJSON(w, 200, followers)
+}
