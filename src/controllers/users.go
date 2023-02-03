@@ -271,3 +271,29 @@ func UnFollowUser(w http.ResponseWriter, r *http.Request) {
 
 	responses.FormatResponseToJSON(w, http.StatusNoContent, nil)
 }
+
+func SearchFollowersOfnAnUser(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	userID, err := strconv.ParseUint(params["userId"], 10, 64)
+	if err != nil {
+		responses.FormatResponseToCustomError(w, 500, err)
+		return
+	}
+
+	DB, err := database.ConnectWithDatabase()
+	if err != nil {
+		responses.FormatResponseToCustomError(w, 500, err)
+		return
+	}
+	defer DB.Close()
+
+	repository := repository.NewUserRepository(DB)
+	followers, err := repository.SearchFollowersOfnAnUser(userID)
+	if err != nil {
+		responses.FormatResponseToCustomError(w, 500, err)
+		return
+	}
+
+	responses.FormatResponseToJSON(w, 200, followers)
+
+}
