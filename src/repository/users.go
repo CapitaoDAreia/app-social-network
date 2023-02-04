@@ -244,5 +244,34 @@ func (u usersRepository) SearchWhoAnUserFollow(userID uint64) ([]models.User, er
 }
 
 func (u usersRepository) SearchUserPassword(userID uint64) (string, error) {
-	rows, err := u.db.Query(``)
+	rows, err := u.db.Query(`select password from users where id = ? `, userID)
+	if err != nil {
+		return "", err
+	}
+	defer rows.Close()
+
+	var searchedUser models.User
+
+	for rows.Next() {
+		if err := rows.Scan(
+			&searchedUser.Password,
+		); err != nil {
+			return "", err
+		}
+	}
+	return searchedUser.Password, err
+}
+
+func (u usersRepository) UpdateUserPassword(requestUserId uint64, hashedNewPasswordStringed string) error {
+	statement, err := u.db.Prepare(`update users set password = ? where id = ?`)
+	if err != nil {
+		return err
+	}
+	defer statement.Close()
+
+	if _, err := statement.Exec(hashedNewPasswordStringed, requestUserId); err != nil {
+		return err
+	}
+
+	return nil
 }

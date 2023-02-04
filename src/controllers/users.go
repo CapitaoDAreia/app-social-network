@@ -6,6 +6,7 @@ import (
 	"api-dvbk-socialNetwork/src/models"
 	"api-dvbk-socialNetwork/src/repository"
 	"api-dvbk-socialNetwork/src/responses"
+	"api-dvbk-socialNetwork/src/security"
 	"encoding/json"
 	"errors"
 	"io/ioutil"
@@ -349,7 +350,7 @@ func UpdateUserPassword(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := json.Unmarshal(bodyRequest, password); err != nil {
+	if err := json.Unmarshal(bodyRequest, &password); err != nil {
 		responses.FormatResponseToCustomError(w, 500, err)
 		return
 	}
@@ -364,4 +365,23 @@ func UpdateUserPassword(w http.ResponseWriter, r *http.Request) {
 	repository := repository.NewUserRepository(DB)
 	returnedPassword, err := repository.SearchUserPassword(requestUserId)
 
+	if err := security.VerifyPassword(password.Current, returnedPassword); err != nil {
+		responses.FormatResponseToCustomError(w, 500, errors.New("Current password not match!"))
+		return
+	}
+
+	hashedNewPassword, err := security.Hash(password.New)
+	if err != nil {
+		responses.FormatResponseToCustomError(w, 500, err)
+		return
+	}
+
+	hashedNewPasswordStringed := string(hashedNewPassword)
+
+	if err := repository.UpdateUserPassword(requestUserId, hashedNewPasswordStringed); err != nil {
+		responses.FormatResponseToCustomError(w, 500, err)
+		return
+	}
+
+	responses.FormatResponseToJSON(w, http.StatusNoContent, nil)
 }
