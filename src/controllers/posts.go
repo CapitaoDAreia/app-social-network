@@ -33,6 +33,11 @@ func CreatePost(w http.ResponseWriter, r *http.Request) {
 
 	post.AuthorID = userTokenId
 
+	if err := post.PreparePostData(); err != nil {
+		responses.FormatResponseToCustomError(w, 500, err)
+		return
+	}
+
 	DB, err := database.ConnectWithDatabase()
 	if err != nil {
 		responses.FormatResponseToCustomError(w, 500, err)
