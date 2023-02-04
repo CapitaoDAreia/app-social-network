@@ -40,13 +40,13 @@ func CreatePost(w http.ResponseWriter, r *http.Request) {
 	}
 
 	repository := repository.NewPostsRepository(DB)
-	postId, err := repository.CreatePost(post)
+	post.ID, err = repository.CreatePost(post)
 	if err != nil {
 		responses.FormatResponseToCustomError(w, 500, err)
 		return
 	}
 
-	responses.FormatResponseToJSON(w, 201, postId)
+	responses.FormatResponseToJSON(w, 201, post)
 
 }
 
