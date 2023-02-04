@@ -18,6 +18,7 @@ func (p postsRepository) CreatePost(post models.Post) (uint64, error) {
 	if err != nil {
 		return 0, err
 	}
+	defer statement.Close()
 
 	result, err := statement.Exec(post.Title, post.Content, post.AuthorID)
 	if err != nil {

@@ -38,6 +38,7 @@ func CreatePost(w http.ResponseWriter, r *http.Request) {
 		responses.FormatResponseToCustomError(w, 500, err)
 		return
 	}
+	defer DB.Close()
 
 	repository := repository.NewPostsRepository(DB)
 	post.ID, err = repository.CreatePost(post)
