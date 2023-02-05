@@ -177,3 +177,23 @@ func (p postsRepository) LikePost(postID uint64) error {
 
 	return nil
 }
+
+func (p postsRepository) UnlikePost(postID uint64) error {
+	statement, err := p.db.Prepare(`
+		UPDATE posts SET likes = 
+		CASE 
+			WHEN likes > 0 THEN likes -1
+		ELSE 0 END
+		WHERE id = ?
+	`)
+	if err != nil {
+		return err
+	}
+	defer statement.Close()
+
+	if _, err := statement.Exec(postID); err != nil {
+		return err
+	}
+
+	return nil
+}
