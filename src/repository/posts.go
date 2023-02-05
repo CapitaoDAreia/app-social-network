@@ -116,3 +116,17 @@ func (p postsRepository) UpdatePost(postRequestID uint64, updatedPost models.Pos
 
 	return nil
 }
+
+func (p postsRepository) DeletePost(postRequestID uint64) error {
+	statement, err := p.db.Prepare(`delete from posts where id = ?`)
+	if err != nil {
+		return err
+	}
+	defer statement.Close()
+
+	if _, err := statement.Exec(postRequestID); err != nil {
+		return err
+	}
+
+	return nil
+}
