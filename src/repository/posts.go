@@ -98,3 +98,21 @@ func (p postsRepository) SearchPosts(tokenUserID uint64) ([]models.Post, error) 
 
 	return posts, nil
 }
+
+func (p postsRepository) UpdatePost(postRequestID uint64, updatedPost models.Post) error {
+	statement, err := p.db.Prepare(`update posts set title = ?, content = ? where id = ?`)
+	if err != nil {
+		return err
+	}
+	defer statement.Close()
+
+	if _, err := statement.Exec(
+		updatedPost.Title,
+		updatedPost.Content,
+		postRequestID,
+	); err != nil {
+		return err
+	}
+
+	return nil
+}
