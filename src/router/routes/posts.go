@@ -42,4 +42,10 @@ var postRoutes = []Route{
 		Controller: controllers.GetUserPosts,
 		NeedAuth:   true,
 	},
+	{
+		URI:        "/posts/{postId}/like",
+		Method:     http.MethodPost,
+		Controller: controllers.LikePost,
+		NeedAuth:   true,
+	},
 }

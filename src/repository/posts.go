@@ -163,3 +163,17 @@ func (p postsRepository) SearchUserPosts(requestUserId uint64) ([]models.Post, e
 
 	return posts, nil
 }
+
+func (p postsRepository) LikePost(postID uint64) error {
+	statement, err := p.db.Prepare(`update posts set likes = likes + 1 where id = ?`)
+	if err != nil {
+		return err
+	}
+	defer statement.Close()
+
+	if _, err := statement.Exec(postID); err != nil {
+		return err
+	}
+
+	return nil
+}
