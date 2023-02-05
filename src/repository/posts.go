@@ -62,3 +62,39 @@ func (p postsRepository) SearchPost(postID uint64) (models.Post, error) {
 
 	return post, nil
 }
+
+func (p postsRepository) SearchPosts(tokenUserID uint64) ([]models.Post, error) {
+	rows, err := p.db.Query(`
+		select distinct p.*, u.nick from posts p
+		inner join users u on u.id = p.authorId
+		inner join followers s on p.authorId = s.user_id
+		where u.id = ? or s.follower_id = ?
+		order by 1 desc`, tokenUserID, tokenUserID)
+	if err != nil {
+		return []models.Post{}, err
+	}
+	defer rows.Close()
+
+	var posts []models.Post
+
+	for rows.Next() {
+
+		var post models.Post
+
+		if err := rows.Scan(
+			&post.ID,
+			&post.Title,
+			&post.Content,
+			&post.AuthorID,
+			&post.Likes,
+			&post.CreatedAt,
+			&post.AuthorNick,
+		); err != nil {
+			return []models.Post{}, err
+		}
+
+		posts = append(posts, post)
+	}
+
+	return posts, nil
+}
