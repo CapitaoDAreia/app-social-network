@@ -9,7 +9,7 @@ import (
 )
 
 // Search for users in database
-func SearchUsers(w http.ResponseWriter, r *http.Request) {
+func GetUsers(w http.ResponseWriter, r *http.Request) {
 	usernameOrNickQuery := strings.ToLower(r.URL.Query().Get("user"))
 
 	DB, err := database.ConnectWithDatabase()

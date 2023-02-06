@@ -10,7 +10,7 @@ import (
 	"github.com/gorilla/mux"
 )
 
-func SearchFollowersOfAnUser(w http.ResponseWriter, r *http.Request) {
+func GetFollowersOfAnUser(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	userID, err := strconv.ParseUint(params["userId"], 10, 64)
 	if err != nil {

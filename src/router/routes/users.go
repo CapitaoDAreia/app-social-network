@@ -16,14 +16,14 @@ var userRoutes = []Route{
 	{
 		URI:        "/users",
 		Method:     http.MethodGet,
-		Controller: usersController.SearchUsers,
+		Controller: usersController.GetUsers,
 		NeedAuth:   true,
 	},
 
 	{
 		URI:        "/users/{userId}",
 		Method:     http.MethodGet,
-		Controller: usersController.SearchUser,
+		Controller: usersController.GetUser,
 		NeedAuth:   true,
 	},
 
@@ -55,13 +55,13 @@ var userRoutes = []Route{
 	{
 		URI:        "/users/{userId}/followers",
 		Method:     http.MethodGet,
-		Controller: usersController.SearchFollowersOfAnUser,
+		Controller: usersController.GetFollowersOfAnUser,
 		NeedAuth:   true,
 	},
 	{
 		URI:        "/users/{userId}/following",
 		Method:     http.MethodGet,
-		Controller: usersController.SearchWhoAnUserFollow,
+		Controller: usersController.GetWhoAnUserFollow,
 		NeedAuth:   true,
 	},
 	{

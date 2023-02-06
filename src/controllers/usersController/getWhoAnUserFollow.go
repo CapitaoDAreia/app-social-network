@@ -10,13 +10,11 @@ import (
 	"github.com/gorilla/mux"
 )
 
-// Search for an specific user in database
-func SearchUser(w http.ResponseWriter, r *http.Request) {
+func GetWhoAnUserFollow(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
-
-	requestID, err := strconv.ParseUint(params["userId"], 10, 64)
+	userID, err := strconv.ParseUint(params["userId"], 10, 64)
 	if err != nil {
-		responses.FormatResponseToCustomError(w, http.StatusBadRequest, err)
+		responses.FormatResponseToCustomError(w, 500, err)
 		return
 	}
 
@@ -25,15 +23,13 @@ func SearchUser(w http.ResponseWriter, r *http.Request) {
 		responses.FormatResponseToCustomError(w, 500, err)
 		return
 	}
-	defer DB.Close()
 
-	userRepository := repository.NewUserRepository(DB)
-
-	user, err := userRepository.SearchUser(requestID)
+	repository := repository.NewUserRepository(DB)
+	followers, err := repository.SearchWhoAnUserFollow(userID)
 	if err != nil {
 		responses.FormatResponseToCustomError(w, 500, err)
 		return
 	}
 
-	responses.FormatResponseToJSON(w, 200, user)
+	responses.FormatResponseToJSON(w, 200, followers)
 }
