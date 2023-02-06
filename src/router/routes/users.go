@@ -1,7 +1,7 @@
 package routes
 
 import (
-	"api-dvbk-socialNetwork/src/controllers"
+	"api-dvbk-socialNetwork/src/controllers/usersController"
 	"net/http"
 )
 
@@ -9,65 +9,65 @@ var userRoutes = []Route{
 	{
 		URI:        "/users",
 		Method:     http.MethodPost,
-		Controller: controllers.CreateUser,
+		Controller: usersController.CreateUser,
 		NeedAuth:   false,
 	},
 
 	{
 		URI:        "/users",
 		Method:     http.MethodGet,
-		Controller: controllers.SearchUsers,
+		Controller: usersController.SearchUsers,
 		NeedAuth:   true,
 	},
 
 	{
 		URI:        "/users/{userId}",
 		Method:     http.MethodGet,
-		Controller: controllers.SearchUser,
+		Controller: usersController.SearchUser,
 		NeedAuth:   true,
 	},
 
 	{
 		URI:        "/users/{userId}",
 		Method:     http.MethodPut,
-		Controller: controllers.UpdateUser,
+		Controller: usersController.UpdateUser,
 		NeedAuth:   true,
 	},
 
 	{
 		URI:        "/users/{userId}",
 		Method:     http.MethodDelete,
-		Controller: controllers.DeleteUser,
+		Controller: usersController.DeleteUser,
 		NeedAuth:   true,
 	},
 	{
 		URI:        "/users/{userId}/follow",
 		Method:     http.MethodPost,
-		Controller: controllers.FollowUser,
+		Controller: usersController.FollowUser,
 		NeedAuth:   true,
 	},
 	{
 		URI:        "/users/{userId}/unfollow",
 		Method:     http.MethodPost,
-		Controller: controllers.UnFollowUser,
+		Controller: usersController.UnFollowUser,
 		NeedAuth:   true,
 	},
 	{
 		URI:        "/users/{userId}/followers",
 		Method:     http.MethodGet,
-		Controller: controllers.SearchFollowersOfnAnUser,
+		Controller: usersController.SearchFollowersOfAnUser,
 		NeedAuth:   true,
 	},
 	{
 		URI:        "/users/{userId}/following",
 		Method:     http.MethodGet,
-		Controller: controllers.SearchWhoAnUserFollow,
+		Controller: usersController.SearchWhoAnUserFollow,
 		NeedAuth:   true,
 	},
 	{
 		URI:        "/users/{userId}/update-password",
 		Method:     http.MethodPost,
-		Controller: controllers.UpdateUserPassword,
+		Controller: usersController.UpdateUserPassword,
 		NeedAuth:   true,
 	},
 }
