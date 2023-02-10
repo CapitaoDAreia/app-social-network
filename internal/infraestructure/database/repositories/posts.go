@@ -5,15 +5,15 @@ import (
 	"database/sql"
 )
 
-type postsRepository struct {
+type PostsRepository struct {
 	db *sql.DB
 }
 
-func NewPostsRepository(db *sql.DB) *postsRepository {
-	return &postsRepository{db}
+func NewPostsRepository(db *sql.DB) *PostsRepository {
+	return &PostsRepository{db}
 }
 
-func (p postsRepository) CreatePost(post models.Post) (uint64, error) {
+func (p PostsRepository) CreatePost(post models.Post) (uint64, error) {
 	statement, err := p.db.Prepare(`insert into posts (title, content, authorId) value(?, ?, ?)`)
 	if err != nil {
 		return 0, err
@@ -33,7 +33,7 @@ func (p postsRepository) CreatePost(post models.Post) (uint64, error) {
 	return uint64(lastId), nil
 }
 
-func (p postsRepository) SearchPost(postID uint64) (models.Post, error) {
+func (p PostsRepository) SearchPost(postID uint64) (models.Post, error) {
 	rows, err := p.db.Query(`
 		 select p.*, u.nick from
 		 posts p inner join users u
@@ -63,7 +63,7 @@ func (p postsRepository) SearchPost(postID uint64) (models.Post, error) {
 	return post, nil
 }
 
-func (p postsRepository) SearchPosts(tokenUserID uint64) ([]models.Post, error) {
+func (p PostsRepository) SearchPosts(tokenUserID uint64) ([]models.Post, error) {
 	rows, err := p.db.Query(`
 		select distinct p.*, u.nick from posts p
 		inner join users u on u.id = p.authorId
@@ -99,7 +99,7 @@ func (p postsRepository) SearchPosts(tokenUserID uint64) ([]models.Post, error) 
 	return posts, nil
 }
 
-func (p postsRepository) UpdatePost(postRequestID uint64, updatedPost models.Post) error {
+func (p PostsRepository) UpdatePost(postRequestID uint64, updatedPost models.Post) error {
 	statement, err := p.db.Prepare(`update posts set title = ?, content = ? where id = ?`)
 	if err != nil {
 		return err
@@ -117,7 +117,7 @@ func (p postsRepository) UpdatePost(postRequestID uint64, updatedPost models.Pos
 	return nil
 }
 
-func (p postsRepository) DeletePost(postRequestID uint64) error {
+func (p PostsRepository) DeletePost(postRequestID uint64) error {
 	statement, err := p.db.Prepare(`delete from posts where id = ?`)
 	if err != nil {
 		return err
@@ -131,7 +131,7 @@ func (p postsRepository) DeletePost(postRequestID uint64) error {
 	return nil
 }
 
-func (p postsRepository) SearchUserPosts(requestUserId uint64) ([]models.Post, error) {
+func (p PostsRepository) SearchUserPosts(requestUserId uint64) ([]models.Post, error) {
 	rows, err := p.db.Query(`
 		select p.*, u.nick from posts p
 		join users u on u.id = p.authorId
@@ -164,7 +164,7 @@ func (p postsRepository) SearchUserPosts(requestUserId uint64) ([]models.Post, e
 	return posts, nil
 }
 
-func (p postsRepository) LikePost(postID uint64) error {
+func (p PostsRepository) LikePost(postID uint64) error {
 	statement, err := p.db.Prepare(`update posts set likes = likes + 1 where id = ?`)
 	if err != nil {
 		return err
@@ -178,7 +178,7 @@ func (p postsRepository) LikePost(postID uint64) error {
 	return nil
 }
 
-func (p postsRepository) UnlikePost(postID uint64) error {
+func (p PostsRepository) UnlikePost(postID uint64) error {
 	statement, err := p.db.Prepare(`
 		UPDATE posts SET likes = 
 		CASE 

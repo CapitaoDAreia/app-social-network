@@ -6,18 +6,18 @@ import (
 	"fmt"
 )
 
-type usersRepository struct {
+type UsersRepository struct {
 	db *sql.DB
 }
 
 // NewUserRepository Receives a database opened in controller and instances it in users struct.
-func NewUserRepository(db *sql.DB) *usersRepository {
-	return &usersRepository{db}
+func NewUserRepository(db *sql.DB) *UsersRepository {
+	return &UsersRepository{db}
 }
 
 // CreateUser Creates a user on database.
 // This is a method of users struct.
-func (u usersRepository) CreateUser(user models.User) (uint64, error) {
+func (u UsersRepository) CreateUser(user models.User) (uint64, error) {
 	statement, err := u.db.Prepare(
 		"insert into users (username, nick, email, password) values(?, ?, ?, ?)",
 	)
@@ -40,7 +40,7 @@ func (u usersRepository) CreateUser(user models.User) (uint64, error) {
 }
 
 // Search for users by username or nick
-func (u usersRepository) SearchUsers(usernameOrNickQuery string) ([]models.User, error) {
+func (u UsersRepository) SearchUsers(usernameOrNickQuery string) ([]models.User, error) {
 	usernameOrNickQuery = fmt.Sprintf("%%%s%%", usernameOrNickQuery) //%usernameOrNickQuery%
 
 	rows, err := u.db.Query(
@@ -73,7 +73,7 @@ func (u usersRepository) SearchUsers(usernameOrNickQuery string) ([]models.User,
 	return users, nil
 }
 
-func (u usersRepository) SearchUser(requestID uint64) (models.User, error) {
+func (u UsersRepository) SearchUser(requestID uint64) (models.User, error) {
 	rows, err := u.db.Query(
 		"select id, username, nick, email, createdAt from users where id=?", requestID,
 	)
@@ -98,7 +98,7 @@ func (u usersRepository) SearchUser(requestID uint64) (models.User, error) {
 	return user, nil
 }
 
-func (u usersRepository) UpdateUser(ID uint64, user models.User) error {
+func (u UsersRepository) UpdateUser(ID uint64, user models.User) error {
 	statement, err := u.db.Prepare(
 		"update users set username=?, nick=?, email=? where id=?",
 	)
@@ -119,7 +119,7 @@ func (u usersRepository) UpdateUser(ID uint64, user models.User) error {
 	return nil
 }
 
-func (u usersRepository) DeleteUser(ID uint64) error {
+func (u UsersRepository) DeleteUser(ID uint64) error {
 	statement, err := u.db.Prepare("delete from users where id=?")
 	if err != nil {
 		return err
@@ -132,7 +132,7 @@ func (u usersRepository) DeleteUser(ID uint64) error {
 	return nil
 }
 
-func (u usersRepository) SearchUserByEmail(email string) (models.User, error) {
+func (u UsersRepository) SearchUserByEmail(email string) (models.User, error) {
 	row, err := u.db.Query("select id, password from users where email=?", email)
 	if err != nil {
 		return models.User{}, err
@@ -150,7 +150,7 @@ func (u usersRepository) SearchUserByEmail(email string) (models.User, error) {
 	return user, nil
 }
 
-func (u usersRepository) Follow(followedID, followerID uint64) error {
+func (u UsersRepository) Follow(followedID, followerID uint64) error {
 	statement, err := u.db.Prepare("insert ignore into followers (user_id, follower_id) values (?, ?)")
 	if err != nil {
 		return err
@@ -164,7 +164,7 @@ func (u usersRepository) Follow(followedID, followerID uint64) error {
 	return nil
 }
 
-func (u usersRepository) UnFollow(followedID, followerID uint64) error {
+func (u UsersRepository) UnFollow(followedID, followerID uint64) error {
 	statement, err := u.db.Prepare("delete from followers where user_id = ? and follower_id = ?")
 	if err != nil {
 		return err
@@ -180,7 +180,7 @@ func (u usersRepository) UnFollow(followedID, followerID uint64) error {
 	return nil
 }
 
-func (u usersRepository) SearchFollowersOfnAnUser(userID uint64) ([]models.User, error) {
+func (u UsersRepository) SearchFollowersOfnAnUser(userID uint64) ([]models.User, error) {
 	rows, err := u.db.Query(
 		`select u.id, u.username, u.nick, u.email, u.createdAt 
 		from users u inner join followers s 
@@ -212,7 +212,7 @@ func (u usersRepository) SearchFollowersOfnAnUser(userID uint64) ([]models.User,
 	return followers, nil
 }
 
-func (u usersRepository) SearchWhoAnUserFollow(userID uint64) ([]models.User, error) {
+func (u UsersRepository) SearchWhoAnUserFollow(userID uint64) ([]models.User, error) {
 	rows, err := u.db.Query(`
 		select u.id, u.username, u.nick, u.email, u.createdAt
 		from users u inner join followers s on u.id = s.user_id where s.follower_id = ?
@@ -243,7 +243,7 @@ func (u usersRepository) SearchWhoAnUserFollow(userID uint64) ([]models.User, er
 	return followers, nil
 }
 
-func (u usersRepository) SearchUserPassword(userID uint64) (string, error) {
+func (u UsersRepository) SearchUserPassword(userID uint64) (string, error) {
 	rows, err := u.db.Query(`select password from users where id = ? `, userID)
 	if err != nil {
 		return "", err
@@ -262,7 +262,7 @@ func (u usersRepository) SearchUserPassword(userID uint64) (string, error) {
 	return searchedUser.Password, err
 }
 
-func (u usersRepository) UpdateUserPassword(requestUserId uint64, hashedNewPasswordStringed string) error {
+func (u UsersRepository) UpdateUserPassword(requestUserId uint64, hashedNewPasswordStringed string) error {
 	statement, err := u.db.Prepare(`update users set password = ? where id = ?`)
 	if err != nil {
 		return err
