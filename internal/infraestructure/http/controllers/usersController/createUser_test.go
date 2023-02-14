@@ -1,84 +1,58 @@
 package usersController
 
 import (
-	"api-dvbk-socialNetwork/internal/domain/entities"
-	"api-dvbk-socialNetwork/internal/infraestructure/http/controllers/usersController/mocks"
+	"api-dvbk-socialNetwork/internal/infraestructure/database/models"
 	"bytes"
-	"database/sql"
+	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"testing"
 
-	json "encoding/json"
-
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
 )
 
 func TestCreateUser(t *testing.T) {
 
-	newUser := entities.User{
-		Username: "username",
-		Nick:     "username1",
-		Email:    "email@email.com",
-		Password: "123456",
+	userSerialized, err := os.ReadFile("../../../../../test/resources/user.json")
+	if err != nil {
+		t.Fatal(err)
 	}
-	newUserJSONConverted, _ := json.Marshal(newUser)
 
-	recorder := httptest.NewRecorder()
-
-	request, _ := http.NewRequest("POST", "/users", bytes.NewBuffer(newUserJSONConverted))
+	var user models.User
+	if err := json.Unmarshal(userSerialized, &user); err != nil {
+		t.Fatal(err)
+	}
 
 	tests := []struct {
-		name                 string
-		newUser              entities.User
-		newUserJSONConverted []byte
-		request              *http.Request
-		requestError         error
-		testResponseRecorder *httptest.ResponseRecorder
-		createdUser          entities.CreatedUser
-
-		createdUserReturn int
-		createdUserError  error
+		name                     string
+		newUserBodyReq           *bytes.Buffer
+		newUser                  models.User
+		expectedStatusCode       int
+		expectedCreateUserResult uint64
+		expectedCreateUserError  error
 	}{
 		{
-			name:                 "Success on create an user",
-			newUser:              newUser,
-			newUserJSONConverted: newUserJSONConverted,
-			request:              request,
-			requestError:         nil,
-			testResponseRecorder: recorder,
-			createdUser:          entities.CreatedUser{},
-			createdUserReturn:    1,
-			createdUserError:     nil,
-		},
-		{
-			name:                 "...",
-			newUser:              newUser,
-			newUserJSONConverted: newUserJSONConverted,
-			request:              request,
-			requestError:         assert.AnError,
-			testResponseRecorder: recorder,
-			createdUser:          entities.CreatedUser{},
-			createdUserReturn:    0,
-			createdUserError:     assert.AnError,
+			name:                     "Success on createUser",
+			newUserBodyReq:           bytes.NewBuffer(userSerialized),
+			expectedStatusCode:       201,
+			newUser:                  user,
+			expectedCreateUserResult: 1,
+			expectedCreateUserError:  nil,
 		},
 	}
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			responsesMock := mocks.NewResponsesMock()
-			responsesMock.On("FormatResponseToCustomError", mock.AnythingOfType("http.ResponseWriter"), mock.AnythingOfType("int"), mock.AnythingOfType("error")).Return()
-			responsesMock.On("FormatResponseToJSON", mock.AnythingOfType("http.ResponseWriter"), mock.AnythingOfType("int"), mock.AnythingOfType("error")).Return()
+			//httpconfig
+			req := httptest.NewRequest(http.MethodPost, "/user", test.newUserBodyReq)
+			res := httptest.NewRecorder()
 
-			DB := &sql.DB{}
+			CreateUser(res, req)
 
-			usersRepositoryMock := mocks.NewUserRepositoryMock(DB)
-			usersRepositoryMock.On("CreateUser", mock.AnythingOfType("models.User")).Return(test.createdUserReturn, test.createdUserError)
+			// asserts
+			assert.Equal(t, res.Result().StatusCode, test.expectedStatusCode)
 
-			usersRepositoryMock.AssertNumberOfCalls(t, "CreateUser", 0)
-
-			CreateUser(test.testResponseRecorder, test.request)
 		})
 	}
 }
