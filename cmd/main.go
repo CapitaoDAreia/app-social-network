@@ -4,7 +4,7 @@ import (
 	"api-dvbk-socialNetwork/internal/infraestructure/configuration"
 	config "api-dvbk-socialNetwork/internal/infraestructure/configuration"
 	"api-dvbk-socialNetwork/internal/infraestructure/database"
-	router "api-dvbk-socialNetwork/internal/infraestructure/http/router/mux"
+	router "api-dvbk-socialNetwork/internal/infraestructure/http/router"
 	"fmt"
 	"log"
 	"net/http"
