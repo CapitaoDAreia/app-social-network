@@ -30,16 +30,14 @@ func NewUsersController(userService services.UsersService) *UsersController {
 	}
 }
 
-// Creates an user in database
+// Calls services to create an user
 func (controller *UsersController) CreateUser(w http.ResponseWriter, r *http.Request) {
-	//Catch bodyRequest
 	bodyRequest, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		responses.FormatResponseToCustomError(w, http.StatusUnprocessableEntity, err)
 		return
 	}
 
-	//Put bodyRequest into a user typed based on a model
 	var user entities.User
 	if err := json.Unmarshal(bodyRequest, &user); err != nil {
 		responses.FormatResponseToCustomError(w, 400, err)
@@ -51,25 +49,13 @@ func (controller *UsersController) CreateUser(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	//Open connection with database
-	DB, err := database.ConnectWithDatabase()
-	if err != nil {
-		responses.FormatResponseToCustomError(w, 500, err)
-		return
-	}
-	defer DB.Close()
-
-	//Create a newUser repo feeding it with DB connection previously opened
-	userRepository := repository.NewUserRepository(DB)
-
-	//Use CreateUser, a method of usersRepository, to Create a newUser feedinf the method with the userReceived in bodyRequest.
-	user.ID, err = userRepository.CreateUser(user)
+	user.ID, err = controller.userService.CreateUser(user)
 	if err != nil {
 		responses.FormatResponseToCustomError(w, 500, err)
 		return
 	}
 
-	responses.FormatResponseToJSON(w, 201, user)
+	responses.FormatResponseToJSON(w, 201, user.ID)
 }
 
 // Update an user in database
