@@ -2,6 +2,7 @@ package routes
 
 import (
 	"api-dvbk-socialNetwork/internal/infraestructure/http/middlewares"
+	"database/sql"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -16,8 +17,8 @@ type Route struct {
 }
 
 // Config all routes in router
-func Configurate(r *mux.Router) *mux.Router {
-	routes := userRoutes
+func Configurate(r *mux.Router, db *sql.DB) *mux.Router {
+	routes := ConfigRoutes(db)
 	routes = append(routes, LoginRoute)
 	routes = append(routes, postRoutes...)
 
