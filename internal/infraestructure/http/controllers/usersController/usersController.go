@@ -3,9 +3,7 @@ package usersController
 import (
 	"api-dvbk-socialNetwork/internal/application/services"
 	"api-dvbk-socialNetwork/internal/domain/entities"
-	"api-dvbk-socialNetwork/internal/infraestructure/database"
 	"api-dvbk-socialNetwork/internal/infraestructure/database/models"
-	repository "api-dvbk-socialNetwork/internal/infraestructure/database/repositories"
 	"api-dvbk-socialNetwork/internal/infraestructure/http/responses"
 	"api-dvbk-socialNetwork/internal/infraestructure/http/security"
 	"encoding/json"
@@ -96,16 +94,7 @@ func (controller *UsersController) UpdateUser(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	DB, err := database.ConnectWithDatabase()
-	if err != nil {
-		responses.FormatResponseToCustomError(w, 500, err)
-		return
-	}
-	defer DB.Close()
-
-	repository := repository.NewUserRepository(DB)
-
-	err = repository.UpdateUser(requestID, user)
+	err = controller.userService.UpdateUser(requestID, user)
 	if err != nil {
 		responses.FormatResponseToCustomError(w, 500, err)
 		return
@@ -124,16 +113,7 @@ func (controller *UsersController) GetUser(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	DB, err := database.ConnectWithDatabase()
-	if err != nil {
-		responses.FormatResponseToCustomError(w, 500, err)
-		return
-	}
-	defer DB.Close()
-
-	userRepository := repository.NewUserRepository(DB)
-
-	user, err := userRepository.SearchUser(requestID)
+	user, err := controller.userService.SearchUser(requestID)
 	if err != nil {
 		responses.FormatResponseToCustomError(w, 500, err)
 		return
@@ -146,15 +126,7 @@ func (controller *UsersController) GetUser(w http.ResponseWriter, r *http.Reques
 func (controller *UsersController) GetUsers(w http.ResponseWriter, r *http.Request) {
 	usernameOrNickQuery := strings.ToLower(r.URL.Query().Get("user"))
 
-	DB, err := database.ConnectWithDatabase()
-	if err != nil {
-		responses.FormatResponseToCustomError(w, 500, err)
-		return
-	}
-	defer DB.Close()
-
-	userRepository := repository.NewUserRepository(DB)
-	users, err := userRepository.SearchUsers(usernameOrNickQuery)
+	users, err := controller.userService.SearchUsers(usernameOrNickQuery)
 	if err != nil {
 		responses.FormatResponseToCustomError(w, 500, err)
 		return
@@ -195,15 +167,7 @@ func (controller *UsersController) UpdateUserPassword(w http.ResponseWriter, r *
 		return
 	}
 
-	DB, err := database.ConnectWithDatabase()
-	if err != nil {
-		responses.FormatResponseToCustomError(w, 500, err)
-		return
-	}
-	defer DB.Close()
-
-	repository := repository.NewUserRepository(DB)
-	returnedPassword, err := repository.SearchUserPassword(requestUserId)
+	returnedPassword, err := controller.userService.SearchUserPassword(requestUserId)
 
 	if err := security.VerifyPassword(password.Current, returnedPassword); err != nil {
 		responses.FormatResponseToCustomError(w, 500, errors.New("Current password not match!"))
@@ -218,7 +182,7 @@ func (controller *UsersController) UpdateUserPassword(w http.ResponseWriter, r *
 
 	hashedNewPasswordStringed := string(hashedNewPassword)
 
-	if err := repository.UpdateUserPassword(requestUserId, hashedNewPasswordStringed); err != nil {
+	if err := controller.userService.UpdateUserPassword(requestUserId, hashedNewPasswordStringed); err != nil {
 		responses.FormatResponseToCustomError(w, 500, err)
 		return
 	}
@@ -247,15 +211,7 @@ func (controller *UsersController) DeleteUser(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	DB, err := database.ConnectWithDatabase()
-	if err != nil {
-		responses.FormatResponseToCustomError(w, 500, err)
-		return
-	}
-	defer DB.Close()
-
-	repository := repository.NewUserRepository(DB)
-	if err := repository.DeleteUser(requestID); err != nil {
+	if err := controller.userService.DeleteUser(requestID); err != nil {
 		responses.FormatResponseToCustomError(w, 500, err)
 		return
 	}
@@ -283,16 +239,7 @@ func (controller *UsersController) FollowUser(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	DB, err := database.ConnectWithDatabase()
-	if err != nil {
-		responses.FormatResponseToCustomError(w, 500, err)
-		return
-	}
-	defer DB.Close()
-
-	repository := repository.NewUserRepository(DB)
-
-	if err := repository.Follow(followedID, followerID); err != nil {
+	if err := controller.userService.Follow(followedID, followerID); err != nil {
 		responses.FormatResponseToCustomError(w, 500, err)
 		return
 	}
@@ -320,15 +267,7 @@ func (controller *UsersController) UnFollowUser(w http.ResponseWriter, r *http.R
 		return
 	}
 
-	DB, err := database.ConnectWithDatabase()
-	if err != nil {
-		responses.FormatResponseToCustomError(w, 500, err)
-		return
-	}
-
-	repository := repository.NewUserRepository(DB)
-
-	if err := repository.UnFollow(followedID, followerID); err != nil {
+	if err := controller.userService.UnFollow(followedID, followerID); err != nil {
 		responses.FormatResponseToCustomError(w, 500, err)
 		return
 	}
@@ -344,15 +283,7 @@ func (controller *UsersController) GetFollowersOfAnUser(w http.ResponseWriter, r
 		return
 	}
 
-	DB, err := database.ConnectWithDatabase()
-	if err != nil {
-		responses.FormatResponseToCustomError(w, 500, err)
-		return
-	}
-	defer DB.Close()
-
-	repository := repository.NewUserRepository(DB)
-	followers, err := repository.SearchFollowersOfnAnUser(userID)
+	followers, err := controller.userService.SearchFollowersOfnAnUser(userID)
 	if err != nil {
 		responses.FormatResponseToCustomError(w, 500, err)
 		return
@@ -370,14 +301,7 @@ func (controller *UsersController) GetWhoAnUserFollow(w http.ResponseWriter, r *
 		return
 	}
 
-	DB, err := database.ConnectWithDatabase()
-	if err != nil {
-		responses.FormatResponseToCustomError(w, 500, err)
-		return
-	}
-
-	repository := repository.NewUserRepository(DB)
-	followers, err := repository.SearchWhoAnUserFollow(userID)
+	followers, err := controller.userService.SearchWhoAnUserFollow(userID)
 	if err != nil {
 		responses.FormatResponseToCustomError(w, 500, err)
 		return
