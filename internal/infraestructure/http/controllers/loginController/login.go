@@ -33,7 +33,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	}
 	defer DB.Close()
 
-	repository := repository.NewUserRepository(DB)
+	repository := repository.NewUsersRepository(DB)
 	foundedUser, err := repository.SearchUserByEmail(user.Email)
 	if err != nil {
 		responses.FormatResponseToCustomError(w, 500, err)

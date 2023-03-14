@@ -1,7 +1,7 @@
 package repository
 
 import (
-	"api-dvbk-socialNetwork/internal/infraestructure/database/models"
+	"api-dvbk-socialNetwork/internal/domain/entities"
 	"database/sql"
 )
 
@@ -13,7 +13,7 @@ func NewPostsRepository(db *sql.DB) *PostsRepository {
 	return &PostsRepository{db}
 }
 
-func (p PostsRepository) CreatePost(post models.Post) (uint64, error) {
+func (p PostsRepository) CreatePost(post entities.Post) (uint64, error) {
 	statement, err := p.db.Prepare(`insert into posts (title, content, authorId) value(?, ?, ?)`)
 	if err != nil {
 		return 0, err
@@ -33,18 +33,18 @@ func (p PostsRepository) CreatePost(post models.Post) (uint64, error) {
 	return uint64(lastId), nil
 }
 
-func (p PostsRepository) SearchPost(postID uint64) (models.Post, error) {
+func (p PostsRepository) SearchPost(postID uint64) (entities.Post, error) {
 	rows, err := p.db.Query(`
 		 select p.*, u.nick from
 		 posts p inner join users u
 		 on u.id = p.authorId where p.id = ?
 	`, postID)
 	if err != nil {
-		return models.Post{}, err
+		return entities.Post{}, err
 	}
 	defer rows.Close()
 
-	var post models.Post
+	var post entities.Post
 
 	if rows.Next() {
 		if err := rows.Scan(
@@ -56,14 +56,14 @@ func (p PostsRepository) SearchPost(postID uint64) (models.Post, error) {
 			&post.CreatedAt,
 			&post.AuthorNick,
 		); err != nil {
-			return models.Post{}, err
+			return entities.Post{}, err
 		}
 	}
 
 	return post, nil
 }
 
-func (p PostsRepository) SearchPosts(tokenUserID uint64) ([]models.Post, error) {
+func (p PostsRepository) SearchPosts(tokenUserID uint64) ([]entities.Post, error) {
 	rows, err := p.db.Query(`
 		select distinct p.*, u.nick from posts p
 		inner join users u on u.id = p.authorId
@@ -71,15 +71,15 @@ func (p PostsRepository) SearchPosts(tokenUserID uint64) ([]models.Post, error) 
 		where u.id = ? or s.follower_id = ?
 		order by 1 desc`, tokenUserID, tokenUserID)
 	if err != nil {
-		return []models.Post{}, err
+		return []entities.Post{}, err
 	}
 	defer rows.Close()
 
-	var posts []models.Post
+	var posts []entities.Post
 
 	for rows.Next() {
 
-		var post models.Post
+		var post entities.Post
 
 		if err := rows.Scan(
 			&post.ID,
@@ -90,7 +90,7 @@ func (p PostsRepository) SearchPosts(tokenUserID uint64) ([]models.Post, error) 
 			&post.CreatedAt,
 			&post.AuthorNick,
 		); err != nil {
-			return []models.Post{}, err
+			return []entities.Post{}, err
 		}
 
 		posts = append(posts, post)
@@ -99,7 +99,7 @@ func (p PostsRepository) SearchPosts(tokenUserID uint64) ([]models.Post, error) 
 	return posts, nil
 }
 
-func (p PostsRepository) UpdatePost(postRequestID uint64, updatedPost models.Post) error {
+func (p PostsRepository) UpdatePost(postRequestID uint64, updatedPost entities.Post) error {
 	statement, err := p.db.Prepare(`update posts set title = ?, content = ? where id = ?`)
 	if err != nil {
 		return err
@@ -131,7 +131,7 @@ func (p PostsRepository) DeletePost(postRequestID uint64) error {
 	return nil
 }
 
-func (p PostsRepository) SearchUserPosts(requestUserId uint64) ([]models.Post, error) {
+func (p PostsRepository) SearchUserPosts(requestUserId uint64) ([]entities.Post, error) {
 	rows, err := p.db.Query(`
 		select p.*, u.nick from posts p
 		join users u on u.id = p.authorId
@@ -142,10 +142,10 @@ func (p PostsRepository) SearchUserPosts(requestUserId uint64) ([]models.Post, e
 	}
 	defer rows.Close()
 
-	var posts []models.Post
+	var posts []entities.Post
 
 	for rows.Next() {
-		var post models.Post
+		var post entities.Post
 		if err := rows.Scan(
 			&post.ID,
 			&post.Title,

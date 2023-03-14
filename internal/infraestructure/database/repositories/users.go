@@ -12,7 +12,7 @@ type UsersRepository struct {
 }
 
 // NewUserRepository Receives a database opened in controller and instances it in users struct.
-func NewUserRepository(db *sql.DB) *UsersRepository {
+func NewUsersRepository(db *sql.DB) *UsersRepository {
 	return &UsersRepository{db}
 }
 
