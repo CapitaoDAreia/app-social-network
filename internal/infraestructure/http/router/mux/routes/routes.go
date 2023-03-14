@@ -21,10 +21,11 @@ func Configurate(r *mux.Router, db *sql.DB) *mux.Router {
 	routes := []Route{}
 	usersRoutes := ConfigUsersRoutes(db)
 	postsRoutes := ConfigPostsRoutes(db)
+	loginRoute := ConfigLoginRoutes(db)
 
 	routes = append(routes, usersRoutes...)
 	routes = append(routes, postsRoutes...)
-	routes = append(routes, LoginRoute)
+	routes = append(routes, loginRoute)
 
 	// r.HandleFunc(route.URI, middlewares.Authenticate(route.Controller),).Methods(route.Method)
 

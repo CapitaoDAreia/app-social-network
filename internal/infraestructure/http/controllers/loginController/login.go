@@ -1,9 +1,8 @@
 package loginController
 
 import (
-	"api-dvbk-socialNetwork/internal/infraestructure/database"
+	"api-dvbk-socialNetwork/internal/application/services"
 	"api-dvbk-socialNetwork/internal/infraestructure/database/models"
-	repository "api-dvbk-socialNetwork/internal/infraestructure/database/repositories"
 	"api-dvbk-socialNetwork/internal/infraestructure/http/auth"
 	"api-dvbk-socialNetwork/internal/infraestructure/http/responses"
 	"api-dvbk-socialNetwork/internal/infraestructure/http/security"
@@ -12,7 +11,15 @@ import (
 	"net/http"
 )
 
-func Login(w http.ResponseWriter, r *http.Request) {
+type LoginController struct {
+	usersServices services.UsersService
+}
+
+func NewLoginController(loginServices services.UsersService) *LoginController {
+	return &LoginController{loginServices}
+}
+
+func (controller *LoginController) Login(w http.ResponseWriter, r *http.Request) {
 	requestBody, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		responses.FormatResponseToCustomError(w, 500, err)
@@ -26,15 +33,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	DB, err := database.ConnectWithDatabase()
-	if err != nil {
-		responses.FormatResponseToCustomError(w, 500, err)
-		return
-	}
-	defer DB.Close()
-
-	repository := repository.NewUsersRepository(DB)
-	foundedUser, err := repository.SearchUserByEmail(user.Email)
+	foundedUser, err := controller.usersServices.SearchUserByEmail(user.Email)
 	if err != nil {
 		responses.FormatResponseToCustomError(w, 500, err)
 		return
