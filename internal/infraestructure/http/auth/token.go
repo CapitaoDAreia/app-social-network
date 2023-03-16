@@ -1,7 +1,7 @@
 package auth
 
 import (
-	config "api-dvbk-socialNetwork/configuration"
+	config "api-dvbk-socialNetwork/internal/infraestructure/configuration"
 	"errors"
 	"fmt"
 	"net/http"

@@ -2,6 +2,7 @@ package routes
 
 import (
 	"api-dvbk-socialNetwork/internal/infraestructure/http/middlewares"
+	"database/sql"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -16,10 +17,15 @@ type Route struct {
 }
 
 // Config all routes in router
-func Configurate(r *mux.Router) *mux.Router {
-	routes := userRoutes
-	routes = append(routes, LoginRoute)
-	routes = append(routes, postRoutes...)
+func Configurate(r *mux.Router, db *sql.DB) *mux.Router {
+	routes := []Route{}
+	usersRoutes := ConfigUsersRoutes(db)
+	postsRoutes := ConfigPostsRoutes(db)
+	loginRoute := ConfigLoginRoutes(db)
+
+	routes = append(routes, usersRoutes...)
+	routes = append(routes, postsRoutes...)
+	routes = append(routes, loginRoute)
 
 	// r.HandleFunc(route.URI, middlewares.Authenticate(route.Controller),).Methods(route.Method)
 

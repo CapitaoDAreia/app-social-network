@@ -1,7 +1,7 @@
 package repository
 
 import (
-	"api-dvbk-socialNetwork/internal/infraestructure/database/models"
+	"api-dvbk-socialNetwork/internal/domain/entities"
 	"database/sql"
 	"fmt"
 )
@@ -11,13 +11,13 @@ type UsersRepository struct {
 }
 
 // NewUserRepository Receives a database opened in controller and instances it in users struct.
-func NewUserRepository(db *sql.DB) *UsersRepository {
+func NewUsersRepository(db *sql.DB) *UsersRepository {
 	return &UsersRepository{db}
 }
 
 // CreateUser Creates a user on database.
 // This is a method of users struct.
-func (u UsersRepository) CreateUser(user models.User) (uint64, error) {
+func (u UsersRepository) CreateUser(user entities.User) (uint64, error) {
 	statement, err := u.db.Prepare(
 		"insert into users (username, nick, email, password) values(?, ?, ?, ?)",
 	)
@@ -40,7 +40,7 @@ func (u UsersRepository) CreateUser(user models.User) (uint64, error) {
 }
 
 // Search for users by username or nick
-func (u UsersRepository) SearchUsers(usernameOrNickQuery string) ([]models.User, error) {
+func (u UsersRepository) SearchUsers(usernameOrNickQuery string) ([]entities.User, error) {
 	usernameOrNickQuery = fmt.Sprintf("%%%s%%", usernameOrNickQuery) //%usernameOrNickQuery%
 
 	rows, err := u.db.Query(
@@ -52,10 +52,10 @@ func (u UsersRepository) SearchUsers(usernameOrNickQuery string) ([]models.User,
 	}
 	defer rows.Close()
 
-	var users []models.User
+	var users []entities.User
 
 	for rows.Next() {
-		var user models.User
+		var user entities.User
 
 		if err = rows.Scan(
 			&user.ID,
@@ -73,16 +73,16 @@ func (u UsersRepository) SearchUsers(usernameOrNickQuery string) ([]models.User,
 	return users, nil
 }
 
-func (u UsersRepository) SearchUser(requestID uint64) (models.User, error) {
+func (u UsersRepository) SearchUser(requestID uint64) (entities.User, error) {
 	rows, err := u.db.Query(
 		"select id, username, nick, email, createdAt from users where id=?", requestID,
 	)
 	if err != nil {
-		return models.User{}, err
+		return entities.User{}, err
 	}
 	defer rows.Close()
 
-	var user models.User
+	var user entities.User
 	for rows.Next() {
 		if err := rows.Scan(
 			&user.ID,
@@ -91,14 +91,14 @@ func (u UsersRepository) SearchUser(requestID uint64) (models.User, error) {
 			&user.Email,
 			&user.CreatedAt,
 		); err != nil {
-			return models.User{}, err
+			return entities.User{}, err
 		}
 	}
 
 	return user, nil
 }
 
-func (u UsersRepository) UpdateUser(ID uint64, user models.User) error {
+func (u UsersRepository) UpdateUser(ID uint64, user entities.User) error {
 	statement, err := u.db.Prepare(
 		"update users set username=?, nick=?, email=? where id=?",
 	)
@@ -132,18 +132,18 @@ func (u UsersRepository) DeleteUser(ID uint64) error {
 	return nil
 }
 
-func (u UsersRepository) SearchUserByEmail(email string) (models.User, error) {
+func (u UsersRepository) SearchUserByEmail(email string) (entities.User, error) {
 	row, err := u.db.Query("select id, password from users where email=?", email)
 	if err != nil {
-		return models.User{}, err
+		return entities.User{}, err
 	}
 	defer row.Close()
 
-	var user models.User
+	var user entities.User
 
 	for row.Next() {
 		if err := row.Scan(&user.ID, &user.Password); err != nil {
-			return models.User{}, err
+			return entities.User{}, err
 		}
 	}
 
@@ -180,21 +180,21 @@ func (u UsersRepository) UnFollow(followedID, followerID uint64) error {
 	return nil
 }
 
-func (u UsersRepository) SearchFollowersOfnAnUser(userID uint64) ([]models.User, error) {
+func (u UsersRepository) SearchFollowersOfnAnUser(userID uint64) ([]entities.User, error) {
 	rows, err := u.db.Query(
 		`select u.id, u.username, u.nick, u.email, u.createdAt 
 		from users u inner join followers s 
 		on u.id = s.follower_id where s.user_id = ?`, userID,
 	)
 	if err != nil {
-		return []models.User{}, err
+		return []entities.User{}, err
 	}
 	defer rows.Close()
 
-	var followers []models.User
+	var followers []entities.User
 
 	for rows.Next() {
-		var user models.User
+		var user entities.User
 
 		if err := rows.Scan(
 			&user.ID,
@@ -203,7 +203,7 @@ func (u UsersRepository) SearchFollowersOfnAnUser(userID uint64) ([]models.User,
 			&user.Email,
 			&user.CreatedAt,
 		); err != nil {
-			return []models.User{}, err
+			return []entities.User{}, err
 		}
 
 		followers = append(followers, user)
@@ -212,20 +212,20 @@ func (u UsersRepository) SearchFollowersOfnAnUser(userID uint64) ([]models.User,
 	return followers, nil
 }
 
-func (u UsersRepository) SearchWhoAnUserFollow(userID uint64) ([]models.User, error) {
+func (u UsersRepository) SearchWhoAnUserFollow(userID uint64) ([]entities.User, error) {
 	rows, err := u.db.Query(`
 		select u.id, u.username, u.nick, u.email, u.createdAt
 		from users u inner join followers s on u.id = s.user_id where s.follower_id = ?
 	`, userID)
 	if err != nil {
-		return []models.User{}, err
+		return []entities.User{}, err
 	}
 	defer rows.Close()
 
-	var followers []models.User
+	var followers []entities.User
 
 	for rows.Next() {
-		var user models.User
+		var user entities.User
 
 		if err := rows.Scan(
 			&user.ID,
@@ -234,7 +234,7 @@ func (u UsersRepository) SearchWhoAnUserFollow(userID uint64) ([]models.User, er
 			&user.Email,
 			&user.CreatedAt,
 		); err != nil {
-			return []models.User{}, err
+			return []entities.User{}, err
 		}
 
 		followers = append(followers, user)
@@ -250,7 +250,7 @@ func (u UsersRepository) SearchUserPassword(userID uint64) (string, error) {
 	}
 	defer rows.Close()
 
-	var searchedUser models.User
+	var searchedUser entities.User
 
 	for rows.Next() {
 		if err := rows.Scan(
