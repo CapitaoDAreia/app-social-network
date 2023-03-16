@@ -4,16 +4,19 @@ import (
 	"api-dvbk-socialNetwork/internal/infraestructure/http/security"
 	"errors"
 	"strings"
+	"time"
 
 	"github.com/badoux/checkmail"
 )
 
 // User represents an user
 type User struct {
-	Username string `json:"username,omitempty"`
-	Nick     string `json:"nick,omitempty"`
-	Email    string `json:"email,omitempty"`
-	Password string `json:"password,omitempty"`
+	ID        uint64    `json:"id,omitempty"`
+	Username  string    `json:"username,omitempty"`
+	Nick      string    `json:"nick,omitempty"`
+	Email     string    `json:"email,omitempty"`
+	Password  string    `json:"password,omitempty"`
+	CreatedAt time.Time `json:"CreatedAt,omitempty"`
 }
 
 type UserStageFlags struct {
