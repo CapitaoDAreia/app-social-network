@@ -2,7 +2,7 @@ package loginController
 
 import (
 	"api-dvbk-socialNetwork/internal/application/services"
-	"api-dvbk-socialNetwork/internal/infraestructure/database/models"
+	"api-dvbk-socialNetwork/internal/domain/entities"
 	"api-dvbk-socialNetwork/internal/infraestructure/http/auth"
 	"api-dvbk-socialNetwork/internal/infraestructure/http/responses"
 	"api-dvbk-socialNetwork/internal/infraestructure/http/security"
@@ -26,7 +26,7 @@ func (controller *LoginController) Login(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	var user models.User
+	var user entities.User
 
 	if err := json.Unmarshal(requestBody, &user); err != nil {
 		responses.FormatResponseToCustomError(w, 500, err)

@@ -2,7 +2,6 @@ package repository
 
 import (
 	"api-dvbk-socialNetwork/internal/domain/entities"
-	"api-dvbk-socialNetwork/internal/infraestructure/database/models"
 	"database/sql"
 	"fmt"
 )
@@ -251,7 +250,7 @@ func (u UsersRepository) SearchUserPassword(userID uint64) (string, error) {
 	}
 	defer rows.Close()
 
-	var searchedUser models.User
+	var searchedUser entities.User
 
 	for rows.Next() {
 		if err := rows.Scan(
