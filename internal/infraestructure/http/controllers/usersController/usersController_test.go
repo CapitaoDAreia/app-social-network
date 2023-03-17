@@ -7,47 +7,51 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/mock"
 )
 
 func TestCreateUser(t *testing.T) {
-	var user entities.User = entities.User{
-		Nick:      "Admin",
-		Username:  "Admin",
-		Email:     "admin@email.com",
-		Password:  "123456",
-		CreatedAt: time.Now(),
+	userSerialized, err := os.ReadFile("../../../../../test/resources/user.json")
+	if err != nil {
+		t.Errorf("json")
 	}
 
-	var buf bytes.Buffer
-	_ = json.NewEncoder(&buf).Encode(user)
+	var user entities.User
+	json.Unmarshal(userSerialized, &user)
 
 	tests := []struct {
-		name string
-		user entities.User
+		name                     string
+		input                    *bytes.Buffer
+		expectedCreateUserResult uint64
+		expectedStatusCode       int
 	}{
 		{
-			name: "Success on CreateUser",
-			user: user,
+			name:                     "Success on CreateUser",
+			input:                    bytes.NewBuffer(userSerialized),
+			expectedCreateUserResult: 1,
+			expectedStatusCode:       http.StatusCreated,
 		},
 	}
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			serviceMock := mocks.NewUsersServiceMock()
-			serviceMock.On("CreateUser", user).Return(mock.AnythingOfType("uint64"), mock.AnythingOfType("error"))
+			serviceMock.On("CreateUser", mock.AnythingOfType("entities.User")).Return(test.expectedCreateUserResult, nil)
 
 			usersController := NewUsersController(serviceMock)
 
+			req := httptest.NewRequest("POST", "/users", test.input)
 			rr := httptest.NewRecorder()
-
-			req := httptest.NewRequest("POST", "/", nil)
 
 			controller := http.HandlerFunc(usersController.CreateUser)
 			controller.ServeHTTP(rr, req)
+
+			if rr.Result().StatusCode != test.expectedStatusCode {
+				t.Errorf("Error on status code got %d; expected %d", rr.Result().StatusCode, test.expectedStatusCode)
+			}
 		})
 	}
 }
