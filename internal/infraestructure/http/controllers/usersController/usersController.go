@@ -49,7 +49,7 @@ func (controller *UsersController) CreateUser(w http.ResponseWriter, r *http.Req
 
 	user.ID, err = controller.userService.CreateUser(user)
 	if err != nil {
-		responses.FormatResponseToCustomError(w, 500, err)
+		responses.FormatResponseToCustomError(w, 400, err)
 		return
 	}
 
