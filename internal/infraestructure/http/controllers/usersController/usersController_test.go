@@ -101,3 +101,43 @@ func TestCreateUser(t *testing.T) {
 		})
 	}
 }
+
+func TestUpdateUser(t *testing.T) {
+	user := entities.User{
+		Username: "admin",
+		Nick:     "admin123",
+		Email:    "admin@admin.com",
+	}
+	userJson, _ := json.Marshal(user)
+
+	tests := []struct {
+		name string
+	}{
+		{
+			name: "Success on Update User",
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			serviceMock := mocks.NewUsersServiceMock()
+			serviceMock.On("CreateUser", mock.AnythingOfType("entities.User")).Return(1, nil)
+			usersController := NewUsersController(serviceMock)
+
+			req := httptest.NewRequest("PUT", "/users/1", bytes.NewBuffer(userJson))
+			req.Header.Set("Content-Type", "application/json")
+			req.Header.Set("Authorization", "Bearer mockToken")
+			parameters := req.URL.Query()
+			fmt.Println(parameters)
+
+			rr := httptest.NewRecorder()
+
+			controller := http.HandlerFunc(usersController.UpdateUser)
+			controller.ServeHTTP(rr, req)
+
+			if rr.Result().StatusCode != 204 {
+				t.Errorf("Error status code; expected 204 got %d", rr.Result().StatusCode)
+			}
+		})
+	}
+}
