@@ -30,7 +30,7 @@ func (service *UsersServiceMock) SearchUser(requestID uint64) (entities.User, er
 }
 
 func (service *UsersServiceMock) UpdateUser(ID uint64, user entities.User) error {
-	args := service.Called(ID)
+	args := service.Called(ID, user)
 	return args.Error(0)
 }
 

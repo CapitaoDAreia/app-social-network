@@ -62,7 +62,7 @@ func (controller *UsersController) UpdateUser(w http.ResponseWriter, r *http.Req
 
 	requestID, err := strconv.ParseUint(parameters["userId"], 10, 64)
 	if err != nil {
-		responses.FormatResponseToCustomError(w, 500, err)
+		responses.FormatResponseToCustomError(w, 400, err)
 		return
 	}
 
@@ -79,18 +79,18 @@ func (controller *UsersController) UpdateUser(w http.ResponseWriter, r *http.Req
 
 	bodyRequest, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		responses.FormatResponseToCustomError(w, 500, err)
+		responses.FormatResponseToCustomError(w, 400, err)
 		return
 	}
 
 	var user entities.User
 	if err := json.Unmarshal(bodyRequest, &user); err != nil {
-		responses.FormatResponseToCustomError(w, 500, err)
+		responses.FormatResponseToCustomError(w, 400, err)
 		return
 	}
 
 	if err := user.PrepareUserData(entities.UserStageFlags{CanConsiderPasswordInValidateUser: false}); err != nil {
-		responses.FormatResponseToCustomError(w, 500, err)
+		responses.FormatResponseToCustomError(w, 400, err)
 		return
 	}
 

@@ -3,6 +3,7 @@ package usersController
 import (
 	"api-dvbk-socialNetwork/internal/application/services/mocks"
 	"api-dvbk-socialNetwork/internal/domain/entities"
+	"api-dvbk-socialNetwork/internal/infraestructure/http/auth"
 	"bytes"
 	"encoding/json"
 	"errors"
@@ -14,6 +15,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
@@ -103,41 +105,128 @@ func TestCreateUser(t *testing.T) {
 }
 
 func TestUpdateUser(t *testing.T) {
-	user := entities.User{
-		Username: "admin",
-		Nick:     "admin123",
-		Email:    "admin@admin.com",
+
+	validToken, err := auth.GenerateToken(1)
+	if err != nil {
+		t.Errorf("%s ", err)
 	}
-	userJson, _ := json.Marshal(user)
+	diffToken, err := auth.GenerateToken(2)
+	if err != nil {
+		t.Errorf("%s ", err)
+	}
 
 	tests := []struct {
-		name string
+		name                  string
+		input                 string
+		urlId                 string
+		validToken            string
+		userId                uint64
+		expectedStatusCode    int
+		expectedUpdatedReturn uint64
+		expectedUpdatedError  error
 	}{
 		{
-			name: "Success on Update User",
+			name:                  "Success on UpdateUser",
+			input:                 `{"username":"updated", "nick":"testupdated", "email":"user1@email.com"}`,
+			urlId:                 "1",
+			validToken:            validToken,
+			userId:                1,
+			expectedStatusCode:    204,
+			expectedUpdatedReturn: 1,
+			expectedUpdatedError:  nil,
+		},
+		{
+			name:                  "Error on UpdateUser, unexistent url ID",
+			input:                 `{"username":"updated", "nick":"testupdated", "email":"user1@email.com"}`,
+			urlId:                 "",
+			validToken:            validToken,
+			userId:                1,
+			expectedStatusCode:    400,
+			expectedUpdatedReturn: 1,
+			expectedUpdatedError:  assert.AnError,
+		},
+		{
+			name:                  "Error on UpdateUser, ExtractUserID",
+			input:                 `{"username":"updated", "nick":"testupdated", "email":"user1@email.com"}`,
+			urlId:                 "1",
+			validToken:            validToken + "invalidate token",
+			userId:                1,
+			expectedStatusCode:    401,
+			expectedUpdatedReturn: 0,
+			expectedUpdatedError:  assert.AnError,
+		},
+		{
+			name:                  "Error on UpdateUser, tokenId != requestId",
+			input:                 `{"username":"updated", "nick":"testupdated", "email":"user1@email.com"}`,
+			urlId:                 "1",
+			validToken:            diffToken,
+			userId:                1,
+			expectedStatusCode:    403,
+			expectedUpdatedReturn: 0,
+			expectedUpdatedError:  assert.AnError,
+		},
+		{
+			name:                  "Error on UpdateUser, empty bodyReq",
+			input:                 "",
+			urlId:                 "1",
+			validToken:            validToken,
+			userId:                1,
+			expectedStatusCode:    400,
+			expectedUpdatedReturn: 1,
+			expectedUpdatedError:  assert.AnError,
+		},
+		{
+			name:                  "Error on UpdateUser, broken bodyReq",
+			input:                 `{"usernameupdated", "nick":"testupdated", "email":"user1@email.com"}`,
+			urlId:                 "1",
+			validToken:            validToken,
+			userId:                1,
+			expectedStatusCode:    400,
+			expectedUpdatedReturn: 1,
+			expectedUpdatedError:  assert.AnError,
+		},
+		{
+			name:                  "Error on UpdateUser, incorrect field on bodyReq",
+			input:                 `{"username":"updated", "nick":"testupdated", "email":"user1@email.com"}`,
+			urlId:                 "1",
+			validToken:            validToken,
+			userId:                1,
+			expectedStatusCode:    500,
+			expectedUpdatedReturn: 1,
+			expectedUpdatedError:  assert.AnError,
+		},
+		{
+			name:                  "Error on call UpdateUser",
+			input:                 `{"invalidField":"updated", "nick":"testupdated", "email":"user1@email.com"}`,
+			urlId:                 "1",
+			validToken:            validToken,
+			userId:                1,
+			expectedStatusCode:    400,
+			expectedUpdatedReturn: 1,
+			expectedUpdatedError:  assert.AnError,
 		},
 	}
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			serviceMock := mocks.NewUsersServiceMock()
-			serviceMock.On("CreateUser", mock.AnythingOfType("entities.User")).Return(1, nil)
+			serviceMock.On("UpdateUser", test.userId, mock.AnythingOfType("entities.User")).Return(test.expectedUpdatedError)
 			usersController := NewUsersController(serviceMock)
 
-			req := httptest.NewRequest("PUT", "/users/1", bytes.NewBuffer(userJson))
-			req.Header.Set("Content-Type", "application/json")
-			req.Header.Set("Authorization", "Bearer mockToken")
-			parameters := req.URL.Query()
-			fmt.Println(parameters)
+			req, _ := http.NewRequest("PUT", "/", strings.NewReader(test.input))
+			req.Header.Add("Authorization", "Bearer "+test.validToken)
+			vars := map[string]string{
+				"userId": test.urlId,
+			}
+			req = mux.SetURLVars(req, vars)
 
 			rr := httptest.NewRecorder()
 
 			controller := http.HandlerFunc(usersController.UpdateUser)
 			controller.ServeHTTP(rr, req)
 
-			if rr.Result().StatusCode != 204 {
-				t.Errorf("Error status code; expected 204 got %d", rr.Result().StatusCode)
-			}
+			assert.Equal(t, test.expectedStatusCode, rr.Code)
+
 		})
 	}
 }
