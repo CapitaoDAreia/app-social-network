@@ -215,10 +215,10 @@ func TestUpdateUser(t *testing.T) {
 
 			req, _ := http.NewRequest("PUT", "/", strings.NewReader(test.input))
 			req.Header.Add("Authorization", "Bearer "+test.validToken)
-			vars := map[string]string{
+			params := map[string]string{
 				"userId": test.urlId,
 			}
-			req = mux.SetURLVars(req, vars)
+			req = mux.SetURLVars(req, params)
 
 			rr := httptest.NewRecorder()
 
@@ -227,6 +227,68 @@ func TestUpdateUser(t *testing.T) {
 
 			assert.Equal(t, test.expectedStatusCode, rr.Code)
 
+		})
+	}
+}
+
+func TestGetUser(t *testing.T) {
+
+	var returnedUser entities.User
+	userSerialized, _ := os.ReadFile("../../../../../test/resources/user.json")
+	json.Unmarshal(userSerialized, &returnedUser)
+
+	tests := []struct {
+		name                     string
+		requestID                string
+		expectedStatusCode       int
+		input                    uint64
+		expectedSearchUserReturn entities.User
+		expectedSearchUserError  error
+	}{
+		{
+			name:                     "Success on GetUser",
+			requestID:                "1",
+			expectedStatusCode:       200,
+			input:                    1,
+			expectedSearchUserReturn: returnedUser,
+			expectedSearchUserError:  nil,
+		},
+		{
+			name:                     "Error on GetUser",
+			requestID:                "1",
+			expectedStatusCode:       500,
+			input:                    1,
+			expectedSearchUserReturn: entities.User{},
+			expectedSearchUserError:  assert.AnError,
+		},
+		{
+			name:                     "Error on GetUser, empty requestId",
+			requestID:                "",
+			expectedStatusCode:       400,
+			input:                    1,
+			expectedSearchUserReturn: entities.User{},
+			expectedSearchUserError:  assert.AnError,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			userServiceMock := mocks.NewUsersServiceMock()
+			userServiceMock.On("SearchUser", test.input).Return(test.expectedSearchUserReturn, test.expectedSearchUserError)
+			usersController := NewUsersController(userServiceMock)
+
+			req, _ := http.NewRequest("GET", "/users/", nil)
+			params := map[string]string{
+				"userId": test.requestID,
+			}
+			req = mux.SetURLVars(req, params)
+			rr := httptest.NewRecorder()
+
+			controller := http.HandlerFunc(usersController.GetUser)
+
+			controller.ServeHTTP(rr, req)
+
+			assert.Equal(t, test.expectedStatusCode, rr.Code)
 		})
 	}
 }
