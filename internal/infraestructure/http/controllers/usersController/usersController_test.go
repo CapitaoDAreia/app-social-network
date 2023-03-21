@@ -14,6 +14,7 @@ import (
 	"os"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/assert"
@@ -286,6 +287,58 @@ func TestGetUser(t *testing.T) {
 
 			controller := http.HandlerFunc(usersController.GetUser)
 
+			controller.ServeHTTP(rr, req)
+
+			assert.Equal(t, test.expectedStatusCode, rr.Code)
+		})
+	}
+}
+
+func TestGetUsers(t *testing.T) {
+
+	tests := []struct {
+		name                      string
+		input                     string
+		expectedSearchUsersReturn []entities.User
+		expectedSearchUsersError  error
+		expectedStatusCode        int
+	}{
+		{
+			name:  "Success on GetUsers",
+			input: "",
+			expectedSearchUsersReturn: []entities.User{
+				{
+					ID:        1,
+					Username:  "",
+					Nick:      "",
+					Email:     "",
+					Password:  "",
+					CreatedAt: time.Now(),
+				},
+			},
+			expectedSearchUsersError: nil,
+			expectedStatusCode:       200,
+		},
+		{
+			name:                      "Error on GetUsers",
+			input:                     "",
+			expectedSearchUsersReturn: []entities.User{},
+			expectedSearchUsersError:  assert.AnError,
+			expectedStatusCode:        500,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			userServiceMock := mocks.NewUsersServiceMock()
+			userServiceMock.On("SearchUsers", test.input).Return(test.expectedSearchUsersReturn, test.expectedSearchUsersError)
+			usersController := NewUsersController(userServiceMock)
+
+			req, _ := http.NewRequest("GET", "/users", nil)
+
+			rr := httptest.NewRecorder()
+
+			controller := http.HandlerFunc(usersController.GetUsers)
 			controller.ServeHTTP(rr, req)
 
 			assert.Equal(t, test.expectedStatusCode, rr.Code)
