@@ -3,7 +3,6 @@ package usersController
 import (
 	"api-dvbk-socialNetwork/internal/application/services/mocks"
 	"api-dvbk-socialNetwork/internal/domain/entities"
-	"api-dvbk-socialNetwork/internal/infraestructure/http/auth"
 	"bytes"
 	"encoding/json"
 	"errors"
@@ -107,15 +106,6 @@ func TestCreateUser(t *testing.T) {
 
 func TestUpdateUser(t *testing.T) {
 
-	validToken, err := auth.GenerateToken(1)
-	if err != nil {
-		t.Errorf("%s ", err)
-	}
-	diffToken, err := auth.GenerateToken(2)
-	if err != nil {
-		t.Errorf("%s ", err)
-	}
-
 	tests := []struct {
 		name                  string
 		input                 string
@@ -130,7 +120,7 @@ func TestUpdateUser(t *testing.T) {
 			name:                  "Success on UpdateUser",
 			input:                 `{"username":"updated", "nick":"testupdated", "email":"user1@email.com"}`,
 			urlId:                 "1",
-			validToken:            validToken,
+			validToken:            ValidToken,
 			userId:                1,
 			expectedStatusCode:    204,
 			expectedUpdatedReturn: 1,
@@ -140,7 +130,7 @@ func TestUpdateUser(t *testing.T) {
 			name:                  "Error on UpdateUser, unexistent url ID",
 			input:                 `{"username":"updated", "nick":"testupdated", "email":"user1@email.com"}`,
 			urlId:                 "",
-			validToken:            validToken,
+			validToken:            ValidToken,
 			userId:                1,
 			expectedStatusCode:    400,
 			expectedUpdatedReturn: 1,
@@ -150,7 +140,7 @@ func TestUpdateUser(t *testing.T) {
 			name:                  "Error on UpdateUser, ExtractUserID",
 			input:                 `{"username":"updated", "nick":"testupdated", "email":"user1@email.com"}`,
 			urlId:                 "1",
-			validToken:            validToken + "invalidate token",
+			validToken:            ValidToken + "invalidate token",
 			userId:                1,
 			expectedStatusCode:    401,
 			expectedUpdatedReturn: 0,
@@ -160,7 +150,7 @@ func TestUpdateUser(t *testing.T) {
 			name:                  "Error on UpdateUser, tokenId != requestId",
 			input:                 `{"username":"updated", "nick":"testupdated", "email":"user1@email.com"}`,
 			urlId:                 "1",
-			validToken:            diffToken,
+			validToken:            DiffToken,
 			userId:                1,
 			expectedStatusCode:    403,
 			expectedUpdatedReturn: 0,
@@ -170,7 +160,7 @@ func TestUpdateUser(t *testing.T) {
 			name:                  "Error on UpdateUser, empty bodyReq",
 			input:                 "",
 			urlId:                 "1",
-			validToken:            validToken,
+			validToken:            ValidToken,
 			userId:                1,
 			expectedStatusCode:    400,
 			expectedUpdatedReturn: 1,
@@ -180,7 +170,7 @@ func TestUpdateUser(t *testing.T) {
 			name:                  "Error on UpdateUser, broken bodyReq",
 			input:                 `{"usernameupdated", "nick":"testupdated", "email":"user1@email.com"}`,
 			urlId:                 "1",
-			validToken:            validToken,
+			validToken:            ValidToken,
 			userId:                1,
 			expectedStatusCode:    400,
 			expectedUpdatedReturn: 1,
@@ -190,7 +180,7 @@ func TestUpdateUser(t *testing.T) {
 			name:                  "Error on UpdateUser, incorrect field on bodyReq",
 			input:                 `{"username":"updated", "nick":"testupdated", "email":"user1@email.com"}`,
 			urlId:                 "1",
-			validToken:            validToken,
+			validToken:            ValidToken,
 			userId:                1,
 			expectedStatusCode:    500,
 			expectedUpdatedReturn: 1,
@@ -200,7 +190,7 @@ func TestUpdateUser(t *testing.T) {
 			name:                  "Error on call UpdateUser",
 			input:                 `{"invalidField":"updated", "nick":"testupdated", "email":"user1@email.com"}`,
 			urlId:                 "1",
-			validToken:            validToken,
+			validToken:            ValidToken,
 			userId:                1,
 			expectedStatusCode:    400,
 			expectedUpdatedReturn: 1,
@@ -339,6 +329,56 @@ func TestGetUsers(t *testing.T) {
 			rr := httptest.NewRecorder()
 
 			controller := http.HandlerFunc(usersController.GetUsers)
+			controller.ServeHTTP(rr, req)
+
+			assert.Equal(t, test.expectedStatusCode, rr.Code)
+		})
+	}
+}
+
+func TestUpdateUserPassword(t *testing.T) {
+	tests := []struct {
+		name                               string
+		validToken                         string
+		bodyReq                            string
+		userId                             uint64
+		searchUserPasswordReturn           string
+		searchUserPasswordError            error
+		updateUserPasswordStringedPassword string
+		expectedUpdateUserError            error
+		expectedStatusCode                 int
+	}{
+		{
+			name:                               "Success on UpdateUserPassword",
+			validToken:                         ValidToken,
+			bodyReq:                            `{"current":"password", "new":"newPassword"}`,
+			userId:                             1,
+			searchUserPasswordReturn:           string(Hashed),
+			searchUserPasswordError:            nil,
+			updateUserPasswordStringedPassword: "password",
+			expectedUpdateUserError:            nil,
+			expectedStatusCode:                 204,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			servicesMock := mocks.NewUsersServiceMock()
+			servicesMock.On("SearchUserPassword", test.userId).Return(test.searchUserPasswordReturn, test.searchUserPasswordError)
+			servicesMock.On("UpdateUserPassword", test.userId, test.updateUserPasswordStringedPassword).Return(test.expectedUpdateUserError)
+			usersController := NewUsersController(servicesMock)
+
+			req, _ := http.NewRequest("POST", "/", strings.NewReader(test.bodyReq))
+			req.Header.Add("Authorization", "Bearer "+ValidToken)
+			fmt.Println(ValidToken)
+			parameters := map[string]string{
+				"userId": fmt.Sprintf("%d", test.userId),
+			}
+			req = mux.SetURLVars(req, parameters)
+
+			rr := httptest.NewRecorder()
+
+			controller := http.HandlerFunc(usersController.UpdateUserPassword)
 			controller.ServeHTTP(rr, req)
 
 			assert.Equal(t, test.expectedStatusCode, rr.Code)
