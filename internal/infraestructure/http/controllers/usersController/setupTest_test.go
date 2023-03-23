@@ -11,12 +11,14 @@ var (
 	ValidToken, DiffToken string
 )
 
-var Hashed []byte
+var Hashed string
 
 func TestMain(m *testing.M) {
 	ValidToken, _ = auth.GenerateToken(1)
 	DiffToken, _ = auth.GenerateToken(2)
-	Hashed, _ = security.Hash("password")
+	hash, _ := security.Hash("123456")
+
+	Hashed = string(hash)
 
 	os.Exit(m.Run())
 }
