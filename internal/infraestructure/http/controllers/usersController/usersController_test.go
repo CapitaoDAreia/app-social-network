@@ -443,3 +443,73 @@ func TestUpdateUserPassword(t *testing.T) {
 		})
 	}
 }
+
+func TestDeleteUser(t *testing.T) {
+
+	tests := []struct {
+		name                    string
+		expectedStatusCode      int
+		userId                  string
+		validToken              string
+		expectedDeleteUserError error
+	}{
+		{
+			name:                    "Success on TestDeleteUser",
+			expectedStatusCode:      204,
+			userId:                  "1",
+			validToken:              ValidToken,
+			expectedDeleteUserError: nil,
+		},
+		{
+			name:                    "Error on TestDeleteUser",
+			expectedStatusCode:      500,
+			userId:                  "1",
+			validToken:              ValidToken,
+			expectedDeleteUserError: assert.AnError,
+		},
+		{
+			name:                    "Error on TestDeleteUser, incorrect userId",
+			expectedStatusCode:      401,
+			userId:                  "122",
+			validToken:              ValidToken,
+			expectedDeleteUserError: nil,
+		},
+		{
+			name:                    "Error on TestDeleteUser, invalid authToken",
+			expectedStatusCode:      401,
+			userId:                  "1",
+			validToken:              ValidToken + "invalidate",
+			expectedDeleteUserError: nil,
+		},
+		{
+			name:                    "Error on TestDeleteUser, empty userId",
+			expectedStatusCode:      400,
+			userId:                  "",
+			validToken:              ValidToken,
+			expectedDeleteUserError: nil,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			servicesMock := mocks.NewUsersServiceMock()
+			servicesMock.On("DeleteUser", mock.AnythingOfType("uint64")).Return(test.expectedDeleteUserError)
+			usersController := NewUsersController(servicesMock)
+
+			req, _ := http.NewRequest("DELETE", "/users", nil)
+			parameters := map[string]string{
+				"userId": test.userId,
+			}
+			req = mux.SetURLVars(req, parameters)
+			req.Header.Add("Authorization", "Bearer "+test.validToken)
+
+			rr := httptest.NewRecorder()
+
+			controller := http.HandlerFunc(usersController.DeleteUser)
+			controller.ServeHTTP(rr, req)
+
+			assert.Equal(t, test.expectedStatusCode, rr.Code)
+		})
+	}
+
+}

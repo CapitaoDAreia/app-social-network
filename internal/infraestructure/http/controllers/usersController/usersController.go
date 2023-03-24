@@ -202,7 +202,7 @@ func (controller *UsersController) DeleteUser(w http.ResponseWriter, r *http.Req
 
 	tokenUserID, err := auth.ExtractUserID(r)
 	if err != nil {
-		responses.FormatResponseToCustomError(w, 500, err)
+		responses.FormatResponseToCustomError(w, 401, err)
 		return
 	}
 
