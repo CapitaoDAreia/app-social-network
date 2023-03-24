@@ -454,35 +454,35 @@ func TestDeleteUser(t *testing.T) {
 		expectedDeleteUserError error
 	}{
 		{
-			name:                    "Success on TestDeleteUser",
+			name:                    "Success on Delete",
 			expectedStatusCode:      204,
 			userId:                  "1",
 			validToken:              ValidToken,
 			expectedDeleteUserError: nil,
 		},
 		{
-			name:                    "Error on TestDeleteUser",
+			name:                    "Error on Delete",
 			expectedStatusCode:      500,
 			userId:                  "1",
 			validToken:              ValidToken,
 			expectedDeleteUserError: assert.AnError,
 		},
 		{
-			name:                    "Error on TestDeleteUser, incorrect userId",
+			name:                    "Error on Delete, incorrect userId",
 			expectedStatusCode:      401,
 			userId:                  "122",
 			validToken:              ValidToken,
 			expectedDeleteUserError: nil,
 		},
 		{
-			name:                    "Error on TestDeleteUser, invalid authToken",
+			name:                    "Error on Delete, invalid authToken",
 			expectedStatusCode:      401,
 			userId:                  "1",
 			validToken:              ValidToken + "invalidate",
 			expectedDeleteUserError: nil,
 		},
 		{
-			name:                    "Error on TestDeleteUser, empty userId",
+			name:                    "Error on Delete, empty userId",
 			expectedStatusCode:      400,
 			userId:                  "",
 			validToken:              ValidToken,
@@ -509,6 +509,77 @@ func TestDeleteUser(t *testing.T) {
 			controller.ServeHTTP(rr, req)
 
 			assert.Equal(t, test.expectedStatusCode, rr.Code)
+		})
+	}
+
+}
+
+func TestFollowUser(t *testing.T) {
+
+	tests := []struct {
+		name                string
+		expectedStatusCode  int
+		followedId          string
+		validToken          string
+		expectedFollowError error
+	}{
+		{
+			name:                "Succcess on FollowUser",
+			expectedStatusCode:  204,
+			followedId:          "2",
+			validToken:          ValidToken,
+			expectedFollowError: nil,
+		},
+		{
+			name:                "Error on FollowUser",
+			expectedStatusCode:  500,
+			followedId:          "2",
+			validToken:          ValidToken,
+			expectedFollowError: assert.AnError,
+		},
+		{
+			name:                "Error on FollowUser, empty followedId",
+			expectedStatusCode:  400,
+			followedId:          "",
+			validToken:          ValidToken,
+			expectedFollowError: nil,
+		},
+		{
+			name:                "Error on FollowUser, invalid authToken",
+			expectedStatusCode:  401,
+			followedId:          "2",
+			validToken:          ValidToken + "invalidate",
+			expectedFollowError: nil,
+		},
+		{
+			name:                "Error on FollowUser, invalid followed quals follower",
+			expectedStatusCode:  403,
+			followedId:          "1",
+			validToken:          ValidToken,
+			expectedFollowError: nil,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			servicesMock := mocks.NewUsersServiceMock()
+			servicesMock.On("Follow", mock.AnythingOfType("uint64"), mock.AnythingOfType("uint64")).Return(test.expectedFollowError)
+			usersController := NewUsersController(servicesMock)
+
+			req, _ := http.NewRequest("POST", "/users/1/follow", nil)
+			req.Header.Add("Authorization", "Bearer "+test.validToken)
+			parameters := map[string]string{
+				"userId": test.followedId,
+			}
+			req = mux.SetURLVars(req, parameters)
+
+			rr := httptest.NewRecorder()
+
+			controller := http.HandlerFunc(usersController.FollowUser)
+			controller.ServeHTTP(rr, req)
+
+			assert.Equal(t, test.expectedStatusCode, rr.Code)
+
 		})
 	}
 

@@ -223,19 +223,19 @@ func (controller *UsersController) DeleteUser(w http.ResponseWriter, r *http.Req
 func (controller *UsersController) FollowUser(w http.ResponseWriter, r *http.Request) {
 	followerID, err := auth.ExtractUserID(r)
 	if err != nil {
-		responses.FormatResponseToCustomError(w, 500, err)
+		responses.FormatResponseToCustomError(w, 401, err)
 		return
 	}
 
 	parameters := mux.Vars(r)
 	followedID, err := strconv.ParseUint(parameters["userId"], 10, 64)
 	if err != nil {
-		responses.FormatResponseToCustomError(w, 500, err)
+		responses.FormatResponseToCustomError(w, 400, err)
 		return
 	}
 
 	if followedID == followerID {
-		responses.FormatResponseToCustomError(w, 500, errors.New("Do you want to follow yourself? Pff! "))
+		responses.FormatResponseToCustomError(w, http.StatusForbidden, errors.New("Do you want to follow yourself? Pff! "))
 		return
 	}
 
