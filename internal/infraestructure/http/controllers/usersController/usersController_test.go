@@ -584,3 +584,71 @@ func TestFollowUser(t *testing.T) {
 	}
 
 }
+
+func TestUnFollowUser(t *testing.T) {
+	tests := []struct {
+		name                   string
+		expectedStatusCode     int
+		followedId             string
+		validToken             string
+		expectedUnFollowResult error
+	}{
+		{
+			name:                   "Succcess on UnFollowUser",
+			expectedStatusCode:     204,
+			followedId:             "2",
+			validToken:             ValidToken,
+			expectedUnFollowResult: nil,
+		},
+		{
+			name:                   "Error on UnFollowUser",
+			expectedStatusCode:     500,
+			followedId:             "2",
+			validToken:             ValidToken,
+			expectedUnFollowResult: assert.AnError,
+		},
+		{
+			name:                   "Error on UnFollowUser, invalid token",
+			expectedStatusCode:     403,
+			followedId:             "2",
+			validToken:             ValidToken + "Invalidate",
+			expectedUnFollowResult: nil,
+		},
+		{
+			name:                   "Error on UnFollowUser, empty userId",
+			expectedStatusCode:     400,
+			followedId:             "",
+			validToken:             ValidToken,
+			expectedUnFollowResult: nil,
+		},
+		{
+			name:                   "Error on UnFollowUser, wrong userId",
+			expectedStatusCode:     403,
+			followedId:             "1",
+			validToken:             ValidToken,
+			expectedUnFollowResult: nil,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			servicesMock := mocks.NewUsersServiceMock()
+			servicesMock.On("UnFollow", mock.AnythingOfType("uint64"), mock.AnythingOfType("uint64")).Return(test.expectedUnFollowResult)
+			usersController := NewUsersController(servicesMock)
+
+			req, _ := http.NewRequest("POST", "/users/{userId}/unfollow", nil)
+			req.Header.Add("Authorization", "Bearer "+test.validToken)
+			parameters := map[string]string{
+				"userId": test.followedId,
+			}
+			req = mux.SetURLVars(req, parameters)
+
+			rr := httptest.NewRecorder()
+
+			controller := http.HandlerFunc(usersController.UnFollowUser)
+			controller.ServeHTTP(rr, req)
+
+			assert.Equal(t, test.expectedStatusCode, rr.Code)
+		})
+	}
+}

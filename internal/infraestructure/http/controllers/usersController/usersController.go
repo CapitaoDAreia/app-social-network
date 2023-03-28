@@ -250,7 +250,7 @@ func (controller *UsersController) FollowUser(w http.ResponseWriter, r *http.Req
 func (controller *UsersController) UnFollowUser(w http.ResponseWriter, r *http.Request) {
 	followerID, err := auth.ExtractUserID(r)
 	if err != nil {
-		responses.FormatResponseToCustomError(w, 500, err)
+		responses.FormatResponseToCustomError(w, 403, err)
 		return
 	}
 
