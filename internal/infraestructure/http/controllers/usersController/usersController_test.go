@@ -652,3 +652,109 @@ func TestUnFollowUser(t *testing.T) {
 		})
 	}
 }
+
+func TestGetFollowersOfAnUser(t *testing.T) {
+	tests := []struct {
+		name                               string
+		expectedStatusCode                 int
+		userId                             string
+		expectedGetFollowersOfAnUserError  error
+		expectedGetFollowersOfAnUserResult []entities.User
+	}{
+		{
+			name:                               "Success on GetFollowersOfAnUser",
+			expectedStatusCode:                 200,
+			userId:                             "1",
+			expectedGetFollowersOfAnUserError:  nil,
+			expectedGetFollowersOfAnUserResult: []entities.User{},
+		},
+		{
+			name:                               "Error on GetFollowersOfAnUser",
+			expectedStatusCode:                 500,
+			userId:                             "1",
+			expectedGetFollowersOfAnUserError:  assert.AnError,
+			expectedGetFollowersOfAnUserResult: []entities.User{},
+		},
+		{
+			name:                               "Error on GetFollowersOfAnUser, empty userId",
+			expectedStatusCode:                 400,
+			userId:                             "",
+			expectedGetFollowersOfAnUserError:  nil,
+			expectedGetFollowersOfAnUserResult: []entities.User{},
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			servicesMock := mocks.NewUsersServiceMock()
+			servicesMock.On("SearchFollowersOfnAnUser", mock.AnythingOfType("uint64")).Return(test.expectedGetFollowersOfAnUserResult, test.expectedGetFollowersOfAnUserError)
+			usersController := NewUsersController(servicesMock)
+
+			req, _ := http.NewRequest("GET", "/", nil)
+			parameters := map[string]string{
+				"userId": test.userId,
+			}
+			req = mux.SetURLVars(req, parameters)
+
+			rr := httptest.NewRecorder()
+
+			controller := http.HandlerFunc(usersController.GetFollowersOfAnUser)
+			controller.ServeHTTP(rr, req)
+
+			assert.Equal(t, test.expectedStatusCode, rr.Code)
+		})
+	}
+}
+
+func TestGetWhoAnUserFollow(t *testing.T) {
+	tests := []struct {
+		name                             string
+		expectedStatusCode               int
+		userId                           string
+		expectedGetWhoAnUserFollowError  error
+		expectedGetWhoAnUserFollowResult []entities.User
+	}{
+		{
+			name:                             "Success on GetWhoAnUserFollow",
+			expectedStatusCode:               200,
+			userId:                           "1",
+			expectedGetWhoAnUserFollowError:  nil,
+			expectedGetWhoAnUserFollowResult: []entities.User{},
+		},
+		{
+			name:                             "Error on GetWhoAnUserFollow",
+			expectedStatusCode:               500,
+			userId:                           "1",
+			expectedGetWhoAnUserFollowError:  assert.AnError,
+			expectedGetWhoAnUserFollowResult: []entities.User{},
+		},
+		{
+			name:                             "Error on GetWhoAnUserFollow, empty userId",
+			expectedStatusCode:               400,
+			userId:                           "",
+			expectedGetWhoAnUserFollowError:  nil,
+			expectedGetWhoAnUserFollowResult: []entities.User{},
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			servicesMock := mocks.NewUsersServiceMock()
+			servicesMock.On("SearchWhoAnUserFollow", mock.AnythingOfType("uint64")).Return(test.expectedGetWhoAnUserFollowResult, test.expectedGetWhoAnUserFollowError)
+			usersController := NewUsersController(servicesMock)
+
+			req, _ := http.NewRequest("GET", "/", nil)
+			parameters := map[string]string{
+				"userId": test.userId,
+			}
+			req = mux.SetURLVars(req, parameters)
+
+			rr := httptest.NewRecorder()
+
+			controller := http.HandlerFunc(usersController.GetWhoAnUserFollow)
+			controller.ServeHTTP(rr, req)
+
+			assert.Equal(t, test.expectedStatusCode, rr.Code)
+		})
+	}
+}

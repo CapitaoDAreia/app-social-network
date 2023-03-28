@@ -279,7 +279,7 @@ func (controller *UsersController) GetFollowersOfAnUser(w http.ResponseWriter, r
 	params := mux.Vars(r)
 	userID, err := strconv.ParseUint(params["userId"], 10, 64)
 	if err != nil {
-		responses.FormatResponseToCustomError(w, 500, err)
+		responses.FormatResponseToCustomError(w, 400, err)
 		return
 	}
 
@@ -297,7 +297,7 @@ func (controller *UsersController) GetWhoAnUserFollow(w http.ResponseWriter, r *
 	params := mux.Vars(r)
 	userID, err := strconv.ParseUint(params["userId"], 10, 64)
 	if err != nil {
-		responses.FormatResponseToCustomError(w, 500, err)
+		responses.FormatResponseToCustomError(w, 400, err)
 		return
 	}
 
