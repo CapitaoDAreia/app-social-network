@@ -5,9 +5,9 @@ DONE: Separate controllers so that each one of them will be in a separate file.
 
 DONE: Refactor users flow
 
-- Refactor login flow
+DONE: Refactor login flow
 
-- Refactor posts flow
+DONE: Refactor posts flow
 
 - Write controllers unit tests
 
@@ -18,7 +18,7 @@ DONE: Refactor users flow
 - Replace checkmail
 
 ## REFACTORING
-- Apply team directories pattern 
+DONE: Apply team directories pattern 
 
 
 ## Validation
