@@ -165,3 +165,38 @@ func TestUpdateUser(t *testing.T) {
 		})
 	}
 }
+
+func TestDeleteUser(t *testing.T) {
+	tests := []struct {
+		name                            string
+		ID                              uint64
+		expectedDeleteUserReturn        error
+		expectedDeleteUserNumberOfCalls int
+	}{
+		{
+			name:                            "Success on DeleteUser",
+			ID:                              1,
+			expectedDeleteUserReturn:        nil,
+			expectedDeleteUserNumberOfCalls: 1,
+		},
+		{
+			name:                            "Error on DeleteUser",
+			ID:                              1,
+			expectedDeleteUserReturn:        assert.AnError,
+			expectedDeleteUserNumberOfCalls: 1,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			usersRepositoryMock := mocks.NewUsersRepositoryMock()
+			usersRepositoryMock.On("DeleteUser", test.ID).Return(test.expectedDeleteUserReturn)
+			services := NewUsersServices(usersRepositoryMock)
+
+			err := services.DeleteUser(test.ID)
+
+			usersRepositoryMock.AssertNumberOfCalls(t, "DeleteUser", test.expectedDeleteUserNumberOfCalls)
+			assert.Equal(t, test.expectedDeleteUserReturn, err)
+		})
+	}
+}
