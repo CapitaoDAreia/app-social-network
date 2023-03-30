@@ -99,8 +99,15 @@ func TestSearchUser(t *testing.T) {
 		{
 			name:                            "Success on SearchUser",
 			requestID:                       1,
-			expectedSearchUserReturn:        entities.User{},
+			expectedSearchUserReturn:        User,
 			expectedSearchUserError:         nil,
+			expectedSearchUserNumberOfCalls: 1,
+		},
+		{
+			name:                            "Error on SearchUser",
+			requestID:                       1,
+			expectedSearchUserReturn:        entities.User{},
+			expectedSearchUserError:         assert.AnError,
 			expectedSearchUserNumberOfCalls: 1,
 		},
 	}
@@ -117,6 +124,44 @@ func TestSearchUser(t *testing.T) {
 			assert.Equal(t, test.expectedSearchUserReturn, user)
 			assert.Equal(t, test.expectedSearchUserError, err)
 
+		})
+	}
+}
+
+func TestUpdateUser(t *testing.T) {
+	tests := []struct {
+		name                            string
+		ID                              uint64
+		user                            entities.User
+		expectedUpdateUserReturn        error
+		expectedUpdateUserNumberOfCalls int
+	}{
+		{
+			name:                            "Success on UpdateUser",
+			ID:                              1,
+			user:                            User,
+			expectedUpdateUserReturn:        nil,
+			expectedUpdateUserNumberOfCalls: 1,
+		},
+		{
+			name:                            "Error on UpdateUser",
+			ID:                              1,
+			user:                            entities.User{},
+			expectedUpdateUserReturn:        assert.AnError,
+			expectedUpdateUserNumberOfCalls: 1,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			usersRepositoryMock := mocks.NewUsersRepositoryMock()
+			usersRepositoryMock.On("UpdateUser", test.ID, test.user).Return(test.expectedUpdateUserReturn)
+			services := NewUsersServices(usersRepositoryMock)
+
+			err := services.UpdateUser(test.ID, test.user)
+
+			usersRepositoryMock.AssertNumberOfCalls(t, "UpdateUser", test.expectedUpdateUserNumberOfCalls)
+			assert.Equal(t, test.expectedUpdateUserReturn, err)
 		})
 	}
 }

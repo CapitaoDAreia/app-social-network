@@ -29,7 +29,7 @@ func (usersRepository *UsersRepositoryMock) SearchUsers(usernameOrNickQuery stri
 func (usersRepository *UsersRepositoryMock) SearchUser(requestID uint64) (entities.User, error) {
 	args := usersRepository.Called(requestID)
 
-	return args.Get(1).(entities.User), args.Error(1)
+	return args.Get(0).(entities.User), args.Error(1)
 }
 
 func (usersRepository *UsersRepositoryMock) UpdateUser(ID uint64, user entities.User) error {
