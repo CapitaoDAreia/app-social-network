@@ -75,15 +75,48 @@ func TestSearchUsers(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			repositoryMock := mocks.NewUsersRepositoryMock()
-			repositoryMock.On("SearchUsers", test.nameOrNick).Return(test.expectedSearchUsersReturn, test.expectedSearchUsersError)
-			services := NewUsersServices(repositoryMock)
+			usersRepositoryMock := mocks.NewUsersRepositoryMock()
+			usersRepositoryMock.On("SearchUsers", test.nameOrNick).Return(test.expectedSearchUsersReturn, test.expectedSearchUsersError)
+			services := NewUsersServices(usersRepositoryMock)
 
-			user, err := services.SearchUsers(test.nameOrNick)
+			users, err := services.SearchUsers(test.nameOrNick)
 
-			repositoryMock.AssertNumberOfCalls(t, "SearchUsers", test.expectedSearchUsersNumberOfCalls)
-			assert.Equal(t, user, test.expectedSearchUsersReturn)
+			usersRepositoryMock.AssertNumberOfCalls(t, "SearchUsers", test.expectedSearchUsersNumberOfCalls)
+			assert.Equal(t, users, test.expectedSearchUsersReturn)
 			assert.Equal(t, err, test.expectedSearchUsersError)
+		})
+	}
+}
+
+func TestSearchUser(t *testing.T) {
+	tests := []struct {
+		name                            string
+		requestID                       uint64
+		expectedSearchUserReturn        entities.User
+		expectedSearchUserError         error
+		expectedSearchUserNumberOfCalls int
+	}{
+		{
+			name:                            "Success on SearchUser",
+			requestID:                       1,
+			expectedSearchUserReturn:        entities.User{},
+			expectedSearchUserError:         nil,
+			expectedSearchUserNumberOfCalls: 1,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			usersRepositoryMock := mocks.NewUsersRepositoryMock()
+			usersRepositoryMock.On("SearchUser", test.requestID).Return(test.expectedSearchUserReturn, test.expectedSearchUserError)
+			services := NewUsersServices(usersRepositoryMock)
+
+			user, err := services.SearchUser(test.requestID)
+
+			usersRepositoryMock.AssertNumberOfCalls(t, "SearchUser", test.expectedSearchUserNumberOfCalls)
+			assert.Equal(t, test.expectedSearchUserReturn, user)
+			assert.Equal(t, test.expectedSearchUserError, err)
+
 		})
 	}
 }
