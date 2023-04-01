@@ -438,3 +438,42 @@ func TestSearchUserPassword(t *testing.T) {
 		})
 	}
 }
+
+func TestUpdateUserPassword(t *testing.T) {
+	tests := []struct {
+		name                                    string
+		requestUserId                           uint64
+		hashedNewPasswordStringed               string
+		expectedUpdateUserPasswordReturn        error
+		expectedUpdateUserPasswordNumberOfCalls int
+	}{
+		{
+			name:                                    "Success on UpdateUserPassword",
+			requestUserId:                           1,
+			hashedNewPasswordStringed:               "",
+			expectedUpdateUserPasswordReturn:        nil,
+			expectedUpdateUserPasswordNumberOfCalls: 1,
+		},
+		{
+			name:                                    "Error on UpdateUserPassword",
+			requestUserId:                           1,
+			hashedNewPasswordStringed:               "",
+			expectedUpdateUserPasswordReturn:        assert.AnError,
+			expectedUpdateUserPasswordNumberOfCalls: 1,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			usersRepositoryMock := mocks.NewUsersRepositoryMock()
+			usersRepositoryMock.On("UpdateUserPassword", test.requestUserId, test.hashedNewPasswordStringed).Return(test.expectedUpdateUserPasswordReturn)
+
+			services := NewUsersServices(usersRepositoryMock)
+
+			err := services.UpdateUserPassword(test.requestUserId, test.hashedNewPasswordStringed)
+
+			usersRepositoryMock.AssertNumberOfCalls(t, "UpdateUserPassword", test.expectedUpdateUserPasswordNumberOfCalls)
+			assert.Equal(t, test.expectedUpdateUserPasswordReturn, err)
+		})
+	}
+}

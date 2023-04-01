@@ -687,7 +687,7 @@ func TestGetFollowersOfAnUser(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			servicesMock := mocks.NewUsersServiceMock()
-			servicesMock.On("SearchFollowersOfnAnUser", mock.AnythingOfType("uint64")).Return(test.expectedGetFollowersOfAnUserResult, test.expectedGetFollowersOfAnUserError)
+			servicesMock.On("SearchFollowersOfAnUser", mock.AnythingOfType("uint64")).Return(test.expectedGetFollowersOfAnUserResult, test.expectedGetFollowersOfAnUserError)
 			usersController := NewUsersController(servicesMock)
 
 			req, _ := http.NewRequest("GET", "/", nil)
