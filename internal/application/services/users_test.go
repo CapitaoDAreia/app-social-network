@@ -279,3 +279,42 @@ func TestFollow(t *testing.T) {
 		})
 	}
 }
+
+func TestUnFollow(t *testing.T) {
+	tests := []struct {
+		name                          string
+		followedID                    uint64
+		followerID                    uint64
+		expectedUnFollowReturn        error
+		expectedUnFollowNumberOfCalls int
+	}{
+		{
+			name:                          "Success on UnFollow",
+			followedID:                    1,
+			followerID:                    2,
+			expectedUnFollowReturn:        nil,
+			expectedUnFollowNumberOfCalls: 1,
+		},
+		{
+			name:                          "Error on UnFollow",
+			followedID:                    1,
+			followerID:                    2,
+			expectedUnFollowReturn:        assert.AnError,
+			expectedUnFollowNumberOfCalls: 1,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			usersRepositoryMock := mocks.NewUsersRepositoryMock()
+			usersRepositoryMock.On("UnFollow", test.followedID, test.followerID).Return(test.expectedUnFollowReturn)
+
+			services := NewUsersServices(usersRepositoryMock)
+
+			err := services.UnFollow(test.followedID, test.followerID)
+
+			usersRepositoryMock.AssertNumberOfCalls(t, "UnFollow", test.expectedUnFollowNumberOfCalls)
+			assert.Equal(t, test.expectedUnFollowReturn, err)
+		})
+	}
+}
