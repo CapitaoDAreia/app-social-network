@@ -3,7 +3,7 @@
 <html>
 	<head>
 		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-		<title>usersController: Go Coverage Report</title>
+		<title>services: Go Coverage Report</title>
 		<style>
 			body {
 				background: black;
@@ -55,7 +55,11 @@
 			<div id="nav">
 				<select id="files">
 				
-				<option value="file0">api-dvbk-socialNetwork/internal/infraestructure/http/controllers/usersController/usersController.go (93.8%)</option>
+				<option value="file0">api-dvbk-socialNetwork/internal/application/services/posts.go (0.0%)</option>
+				
+				<option value="file1">api-dvbk-socialNetwork/internal/application/services/users.go (100.0%)</option>
+				
+				<option value="file2">api-dvbk-socialNetwork/internal/infraestructure/http/controllers/usersController/usersController.go (93.8%)</option>
 				
 				</select>
 			</div>
@@ -69,7 +73,248 @@
 		</div>
 		<div id="content">
 		
-		<pre class="file" id="file0" style="display: none">package usersController
+		<pre class="file" id="file0" style="display: none">package services
+
+import (
+        "api-dvbk-socialNetwork/internal/domain/entities"
+        repository "api-dvbk-socialNetwork/internal/infraestructure/database/repositories"
+)
+
+type PostServices interface {
+        CreatePost(post entities.Post) (uint64, error)
+        SearchPost(postID uint64) (entities.Post, error)
+        SearchPosts(tokenUserID uint64) ([]entities.Post, error)
+        UpdatePost(postRequestID uint64, updatedPost entities.Post) error
+        DeletePost(postRequestID uint64) error
+        SearchUserPosts(requestUserId uint64) ([]entities.Post, error)
+        LikePost(postID uint64) error
+        UnlikePost(postID uint64) error
+}
+
+type postServices struct {
+        postsRepository repository.PostsRepository
+}
+
+func NewPostsServices(postsRepository repository.PostsRepository) *postServices <span class="cov0" title="0">{
+        return &amp;postServices{postsRepository}
+}</span>
+
+func (service *postServices) CreatePost(post entities.Post) (uint64, error) <span class="cov0" title="0">{
+        ID, err := service.postsRepository.CreatePost(post)
+        if err != nil </span><span class="cov0" title="0">{
+                return 0, err
+        }</span>
+
+        <span class="cov0" title="0">return ID, nil</span>
+}
+
+func (service *postServices) SearchPost(postID uint64) (entities.Post, error) <span class="cov0" title="0">{
+        post, err := service.postsRepository.SearchPost(postID)
+        if err != nil </span><span class="cov0" title="0">{
+                return entities.Post{}, err
+        }</span>
+
+        <span class="cov0" title="0">return post, nil</span>
+}
+
+func (service *postServices) SearchPosts(tokenUserID uint64) ([]entities.Post, error) <span class="cov0" title="0">{
+        posts, err := service.postsRepository.SearchPosts(tokenUserID)
+        if err != nil </span><span class="cov0" title="0">{
+                return []entities.Post{}, err
+        }</span>
+
+        <span class="cov0" title="0">return posts, nil</span>
+}
+
+func (service *postServices) UpdatePost(postRequestID uint64, updatedPost entities.Post) error <span class="cov0" title="0">{
+        err := service.postsRepository.UpdatePost(postRequestID, updatedPost)
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+
+        <span class="cov0" title="0">return nil</span>
+}
+
+func (service *postServices) DeletePost(postRequestID uint64) error <span class="cov0" title="0">{
+        err := service.postsRepository.DeletePost(postRequestID)
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+
+        <span class="cov0" title="0">return nil</span>
+}
+
+func (service *postServices) SearchUserPosts(requestUserId uint64) ([]entities.Post, error) <span class="cov0" title="0">{
+        posts, err := service.postsRepository.SearchUserPosts(requestUserId)
+        if err != nil </span><span class="cov0" title="0">{
+                return []entities.Post{}, err
+        }</span>
+
+        <span class="cov0" title="0">return posts, nil</span>
+
+}
+
+func (service *postServices) LikePost(postID uint64) error <span class="cov0" title="0">{
+        err := service.postsRepository.LikePost(postID)
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+
+        <span class="cov0" title="0">return nil</span>
+}
+
+func (service *postServices) UnlikePost(postID uint64) error <span class="cov0" title="0">{
+        err := service.postsRepository.UnlikePost(postID)
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+
+        <span class="cov0" title="0">return nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file1" style="display: none">package services
+
+import (
+        "api-dvbk-socialNetwork/internal/domain/entities"
+        "api-dvbk-socialNetwork/internal/domain/repositories"
+)
+
+type UsersService interface {
+        CreateUser(user entities.User) (uint64, error)
+        SearchUsers(usernameOrNickQuery string) ([]entities.User, error)
+        SearchUser(requestID uint64) (entities.User, error)
+        UpdateUser(ID uint64, user entities.User) error
+        DeleteUser(ID uint64) error
+        SearchUserByEmail(email string) (entities.User, error)
+        Follow(followedID, followerID uint64) error
+        UnFollow(followedID, followerID uint64) error
+        SearchFollowersOfAnUser(userID uint64) ([]entities.User, error)
+        SearchWhoAnUserFollow(userID uint64) ([]entities.User, error)
+        SearchUserPassword(userID uint64) (string, error)
+        UpdateUserPassword(requestUserId uint64, hashedNewPasswordStringed string) error
+}
+
+type usersService struct {
+        usersRepository repositories.UsersRepository
+}
+
+func NewUsersServices(userRepository repositories.UsersRepository) *usersService <span class="cov8" title="1">{
+        return &amp;usersService{
+                userRepository,
+        }
+}</span>
+
+func (service *usersService) CreateUser(user entities.User) (uint64, error) <span class="cov8" title="1">{
+        createdUserId, err := service.usersRepository.CreateUser(user)
+        if err != nil </span><span class="cov8" title="1">{
+                return 0, err
+        }</span>
+        <span class="cov8" title="1">return createdUserId, nil</span>
+}
+
+func (service *usersService) SearchUsers(usernameOrNickQuery string) ([]entities.User, error) <span class="cov8" title="1">{
+
+        allUsers, err := service.usersRepository.SearchUsers(usernameOrNickQuery)
+        if err != nil </span><span class="cov8" title="1">{
+                return []entities.User{}, err
+        }</span>
+
+        <span class="cov8" title="1">return allUsers, nil</span>
+}
+
+func (service *usersService) SearchUser(requestID uint64) (entities.User, error) <span class="cov8" title="1">{
+        user, err := service.usersRepository.SearchUser(requestID)
+        if err != nil </span><span class="cov8" title="1">{
+                return entities.User{}, err
+        }</span>
+
+        <span class="cov8" title="1">return user, nil</span>
+}
+
+func (service *usersService) UpdateUser(ID uint64, user entities.User) error <span class="cov8" title="1">{
+        err := service.usersRepository.UpdateUser(ID, user)
+        if err != nil </span><span class="cov8" title="1">{
+                return err
+        }</span>
+
+        <span class="cov8" title="1">return nil</span>
+}
+
+func (service *usersService) DeleteUser(ID uint64) error <span class="cov8" title="1">{
+        err := service.usersRepository.DeleteUser(ID)
+        if err != nil </span><span class="cov8" title="1">{
+                return err
+        }</span>
+
+        <span class="cov8" title="1">return nil</span>
+}
+
+func (service *usersService) SearchUserByEmail(email string) (entities.User, error) <span class="cov8" title="1">{
+        user, err := service.usersRepository.SearchUserByEmail(email)
+        if err != nil </span><span class="cov8" title="1">{
+                return entities.User{}, err
+        }</span>
+
+        <span class="cov8" title="1">return user, nil</span>
+}
+
+func (service *usersService) Follow(followedID, followerID uint64) error <span class="cov8" title="1">{
+        err := service.usersRepository.Follow(followedID, followerID)
+        if err != nil </span><span class="cov8" title="1">{
+                return err
+        }</span>
+
+        <span class="cov8" title="1">return nil</span>
+}
+
+func (service *usersService) UnFollow(followedID, followerID uint64) error <span class="cov8" title="1">{
+        err := service.usersRepository.UnFollow(followedID, followerID)
+        if err != nil </span><span class="cov8" title="1">{
+                return err
+        }</span>
+
+        <span class="cov8" title="1">return nil</span>
+}
+
+func (service *usersService) SearchFollowersOfAnUser(userID uint64) ([]entities.User, error) <span class="cov8" title="1">{
+        followers, err := service.usersRepository.SearchFollowersOfAnUser(userID)
+        if err != nil </span><span class="cov8" title="1">{
+                return []entities.User{}, err
+        }</span>
+
+        <span class="cov8" title="1">return followers, nil</span>
+}
+
+func (service *usersService) SearchWhoAnUserFollow(userID uint64) ([]entities.User, error) <span class="cov8" title="1">{
+        followedBy, err := service.usersRepository.SearchWhoAnUserFollow(userID)
+        if err != nil </span><span class="cov8" title="1">{
+                return []entities.User{}, err
+        }</span>
+
+        <span class="cov8" title="1">return followedBy, nil</span>
+}
+
+func (service *usersService) SearchUserPassword(userID uint64) (string, error) <span class="cov8" title="1">{
+        password, err := service.usersRepository.SearchUserPassword(userID)
+        if err != nil </span><span class="cov8" title="1">{
+                return "", err
+        }</span>
+
+        <span class="cov8" title="1">return password, nil</span>
+}
+
+func (service *usersService) UpdateUserPassword(requestUserId uint64, hashedNewPasswordStringed string) error <span class="cov8" title="1">{
+        err := service.usersRepository.UpdateUserPassword(requestUserId, hashedNewPasswordStringed)
+        if err != nil </span><span class="cov8" title="1">{
+                return err
+        }</span>
+
+        <span class="cov8" title="1">return nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file2" style="display: none">package usersController
 
 import (
         "api-dvbk-socialNetwork/internal/application/services"
@@ -354,7 +599,7 @@ func (controller *UsersController) GetFollowersOfAnUser(w http.ResponseWriter, r
                 return
         }</span>
 
-        <span class="cov8" title="1">followers, err := controller.userService.SearchFollowersOfnAnUser(userID)
+        <span class="cov8" title="1">followers, err := controller.userService.SearchFollowersOfAnUser(userID)
         if err != nil </span><span class="cov8" title="1">{
                 responses.FormatResponseToCustomError(w, 500, err)
                 return
