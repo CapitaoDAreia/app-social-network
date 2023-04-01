@@ -14,7 +14,7 @@ type UsersService interface {
 	SearchUserByEmail(email string) (entities.User, error)
 	Follow(followedID, followerID uint64) error
 	UnFollow(followedID, followerID uint64) error
-	SearchFollowersOfnAnUser(userID uint64) ([]entities.User, error)
+	SearchFollowersOfAnUser(userID uint64) ([]entities.User, error)
 	SearchWhoAnUserFollow(userID uint64) ([]entities.User, error)
 	SearchUserPassword(userID uint64) (string, error)
 	UpdateUserPassword(requestUserId uint64, hashedNewPasswordStringed string) error
@@ -102,8 +102,8 @@ func (service *usersService) UnFollow(followedID, followerID uint64) error {
 	return nil
 }
 
-func (service *usersService) SearchFollowersOfnAnUser(userID uint64) ([]entities.User, error) {
-	followers, err := service.usersRepository.SearchFollowersOfnAnUser(userID)
+func (service *usersService) SearchFollowersOfAnUser(userID uint64) ([]entities.User, error) {
+	followers, err := service.usersRepository.SearchFollowersOfAnUser(userID)
 	if err != nil {
 		return []entities.User{}, err
 	}

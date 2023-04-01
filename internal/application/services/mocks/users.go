@@ -54,7 +54,7 @@ func (service *UsersServiceMock) UnFollow(followedID, followerID uint64) error {
 	return args.Error(0)
 }
 
-func (service *UsersServiceMock) SearchFollowersOfnAnUser(userID uint64) ([]entities.User, error) {
+func (service *UsersServiceMock) SearchFollowersOfAnUser(userID uint64) ([]entities.User, error) {
 	args := service.Called(userID)
 	return args.Get(0).([]entities.User), args.Error(1)
 }

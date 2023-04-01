@@ -62,7 +62,7 @@ func (usersRepository *UsersRepositoryMock) UnFollow(followedID, followerID uint
 	return args.Error(0)
 }
 
-func (usersRepository *UsersRepositoryMock) SearchFollowersOfnAnUser(userID uint64) ([]entities.User, error) {
+func (usersRepository *UsersRepositoryMock) SearchFollowersOfAnUser(userID uint64) ([]entities.User, error) {
 	args := usersRepository.Called(userID)
 
 	return args.Get(0).([]entities.User), args.Error(1)

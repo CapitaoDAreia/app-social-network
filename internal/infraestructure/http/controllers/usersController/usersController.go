@@ -283,7 +283,7 @@ func (controller *UsersController) GetFollowersOfAnUser(w http.ResponseWriter, r
 		return
 	}
 
-	followers, err := controller.userService.SearchFollowersOfnAnUser(userID)
+	followers, err := controller.userService.SearchFollowersOfAnUser(userID)
 	if err != nil {
 		responses.FormatResponseToCustomError(w, 500, err)
 		return

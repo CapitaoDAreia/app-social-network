@@ -318,3 +318,43 @@ func TestUnFollow(t *testing.T) {
 		})
 	}
 }
+
+func TestSearchFollowersOfAnUser(t *testing.T) {
+	tests := []struct {
+		name                                         string
+		userId                                       uint64
+		expectedSearchFollowersOfAnUserError         error
+		expectedSearchFollowersOfAnUserReturn        []entities.User
+		expectedSearchFollowersOfAnUserNumberOfCalls int
+	}{
+		{
+			name:                                  "Success on SearchFollowersOfAnUser",
+			userId:                                1,
+			expectedSearchFollowersOfAnUserError:  nil,
+			expectedSearchFollowersOfAnUserReturn: []entities.User{User},
+			expectedSearchFollowersOfAnUserNumberOfCalls: 1,
+		},
+		{
+			name:                                  "Error on SearchFollowersOfAnUser",
+			userId:                                1,
+			expectedSearchFollowersOfAnUserError:  assert.AnError,
+			expectedSearchFollowersOfAnUserReturn: []entities.User{},
+			expectedSearchFollowersOfAnUserNumberOfCalls: 1,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			usersRepositoryMock := mocks.NewUsersRepositoryMock()
+			usersRepositoryMock.On("SearchFollowersOfAnUser", test.userId).Return(test.expectedSearchFollowersOfAnUserReturn, test.expectedSearchFollowersOfAnUserError)
+
+			services := NewUsersServices(usersRepositoryMock)
+
+			users, err := services.SearchFollowersOfAnUser(test.userId)
+
+			usersRepositoryMock.AssertNumberOfCalls(t, "SearchFollowersOfAnUser", test.expectedSearchFollowersOfAnUserNumberOfCalls)
+			assert.Equal(t, test.expectedSearchFollowersOfAnUserReturn, users)
+			assert.Equal(t, test.expectedSearchFollowersOfAnUserError, err)
+		})
+	}
+}

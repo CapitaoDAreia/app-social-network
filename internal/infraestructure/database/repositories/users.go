@@ -180,7 +180,7 @@ func (u UsersRepository) UnFollow(followedID, followerID uint64) error {
 	return nil
 }
 
-func (u UsersRepository) SearchFollowersOfnAnUser(userID uint64) ([]entities.User, error) {
+func (u UsersRepository) SearchFollowersOfAnUser(userID uint64) ([]entities.User, error) {
 	rows, err := u.db.Query(
 		`select u.id, u.username, u.nick, u.email, u.createdAt 
 		from users u inner join followers s 
