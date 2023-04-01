@@ -240,3 +240,42 @@ func TestSearchUserByEmaill(t *testing.T) {
 		})
 	}
 }
+
+func TestFollow(t *testing.T) {
+	tests := []struct {
+		name                        string
+		followedID                  uint64
+		followerID                  uint64
+		expectedFollowReturn        error
+		expectedFollowNumberOfCalls int
+	}{
+		{
+			name:                        "Success on Follow",
+			followedID:                  1,
+			followerID:                  2,
+			expectedFollowReturn:        nil,
+			expectedFollowNumberOfCalls: 1,
+		},
+		{
+			name:                        "Error on Follow",
+			followedID:                  1,
+			followerID:                  2,
+			expectedFollowReturn:        assert.AnError,
+			expectedFollowNumberOfCalls: 1,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			usersRepositoryMock := mocks.NewUsersRepositoryMock()
+			usersRepositoryMock.On("Follow", test.followedID, test.followerID).Return(test.expectedFollowReturn)
+
+			services := NewUsersServices(usersRepositoryMock)
+
+			err := services.Follow(test.followedID, test.followerID)
+
+			usersRepositoryMock.AssertNumberOfCalls(t, "Follow", test.expectedFollowNumberOfCalls)
+			assert.Equal(t, test.expectedFollowReturn, err)
+		})
+	}
+}
