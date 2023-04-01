@@ -358,3 +358,83 @@ func TestSearchFollowersOfAnUser(t *testing.T) {
 		})
 	}
 }
+
+func TestSearchWhoAnUserFollow(t *testing.T) {
+	tests := []struct {
+		name                                       string
+		userId                                     uint64
+		expectedSearchWhoAnUserFollowError         error
+		expectedSearchWhoAnUserFollowReturn        []entities.User
+		expectedSearchWhoAnUserFollowNumberOfCalls int
+	}{
+		{
+			name:                                "Success on SearchWhoAnUserFollow",
+			userId:                              1,
+			expectedSearchWhoAnUserFollowError:  nil,
+			expectedSearchWhoAnUserFollowReturn: []entities.User{User},
+			expectedSearchWhoAnUserFollowNumberOfCalls: 1,
+		},
+		{
+			name:                                "Error on SearchWhoAnUserFollow",
+			userId:                              1,
+			expectedSearchWhoAnUserFollowError:  assert.AnError,
+			expectedSearchWhoAnUserFollowReturn: []entities.User{},
+			expectedSearchWhoAnUserFollowNumberOfCalls: 1,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			usersRepositoryMock := mocks.NewUsersRepositoryMock()
+			usersRepositoryMock.On("SearchWhoAnUserFollow", test.userId).Return(test.expectedSearchWhoAnUserFollowReturn, test.expectedSearchWhoAnUserFollowError)
+
+			services := NewUsersServices(usersRepositoryMock)
+
+			users, err := services.SearchWhoAnUserFollow(test.userId)
+
+			usersRepositoryMock.AssertNumberOfCalls(t, "SearchWhoAnUserFollow", test.expectedSearchWhoAnUserFollowNumberOfCalls)
+			assert.Equal(t, test.expectedSearchWhoAnUserFollowReturn, users)
+			assert.Equal(t, test.expectedSearchWhoAnUserFollowError, err)
+		})
+	}
+}
+
+func TestSearchUserPassword(t *testing.T) {
+	tests := []struct {
+		name                                    string
+		userId                                  uint64
+		expectedSearchUserPasswordError         error
+		expectedSearchUserPasswordReturn        string
+		expectedSearchUserPasswordNumberOfCalls int
+	}{
+		{
+			name:                                    "Success on SearchUserPassword",
+			userId:                                  1,
+			expectedSearchUserPasswordError:         nil,
+			expectedSearchUserPasswordReturn:        "",
+			expectedSearchUserPasswordNumberOfCalls: 1,
+		},
+		{
+			name:                                    "Error on SearchUserPassword",
+			userId:                                  1,
+			expectedSearchUserPasswordError:         assert.AnError,
+			expectedSearchUserPasswordReturn:        "",
+			expectedSearchUserPasswordNumberOfCalls: 1,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			usersRepositoryMock := mocks.NewUsersRepositoryMock()
+			usersRepositoryMock.On("SearchUserPassword", test.userId).Return(test.expectedSearchUserPasswordReturn, test.expectedSearchUserPasswordError)
+
+			services := NewUsersServices(usersRepositoryMock)
+
+			users, err := services.SearchUserPassword(test.userId)
+
+			usersRepositoryMock.AssertNumberOfCalls(t, "SearchUserPassword", test.expectedSearchUserPasswordNumberOfCalls)
+			assert.Equal(t, test.expectedSearchUserPasswordReturn, users)
+			assert.Equal(t, test.expectedSearchUserPasswordError, err)
+		})
+	}
+}
