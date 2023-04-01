@@ -200,3 +200,43 @@ func TestDeleteUser(t *testing.T) {
 		})
 	}
 }
+
+func TestSearchUserByEmaill(t *testing.T) {
+	tests := []struct {
+		name                                    string
+		userEmail                               string
+		expectedSearchUserByEmaillReturn        entities.User
+		expectedSearchUserByEmaillError         error
+		expectedSearchUserByEmaillNumberOfCalls int
+	}{
+		{
+			name:                                    "Success on SearchUserByEmaill",
+			userEmail:                               "admin@admin.com",
+			expectedSearchUserByEmaillReturn:        User,
+			expectedSearchUserByEmaillError:         nil,
+			expectedSearchUserByEmaillNumberOfCalls: 1,
+		},
+		{
+			name:                                    "Error on SearchUserByEmaill",
+			userEmail:                               "admin@admin.com",
+			expectedSearchUserByEmaillReturn:        entities.User{},
+			expectedSearchUserByEmaillError:         assert.AnError,
+			expectedSearchUserByEmaillNumberOfCalls: 1,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			usersRepositoryMock := mocks.NewUsersRepositoryMock()
+			usersRepositoryMock.On("SearchUserByEmail", test.userEmail).Return(test.expectedSearchUserByEmaillReturn, test.expectedSearchUserByEmaillError)
+
+			services := NewUsersServices(usersRepositoryMock)
+
+			user, err := services.SearchUserByEmail(test.userEmail)
+
+			usersRepositoryMock.AssertNumberOfCalls(t, "SearchUserByEmail", test.expectedSearchUserByEmaillNumberOfCalls)
+			assert.Equal(t, test.expectedSearchUserByEmaillReturn, user)
+			assert.Equal(t, test.expectedSearchUserByEmaillError, err)
+		})
+	}
+}

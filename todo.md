@@ -17,6 +17,12 @@ DONE: Refactor posts flow
 
 - Replace checkmail
 
+- Isolamento do pacote auth e validações de token
+
+- Auth and security can be combined
+
+- Trazer a responsabilidade da routes.Configurate para a main
+
 ## REFACTORING
 DONE: Apply team directories pattern 
 
