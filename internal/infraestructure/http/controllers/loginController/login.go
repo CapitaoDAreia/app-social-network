@@ -5,7 +5,6 @@ import (
 	"api-dvbk-socialNetwork/internal/domain/entities"
 	"api-dvbk-socialNetwork/internal/infraestructure/http/auth"
 	"api-dvbk-socialNetwork/internal/infraestructure/http/responses"
-	"api-dvbk-socialNetwork/internal/infraestructure/http/security"
 	"encoding/json"
 	"io/ioutil"
 	"net/http"
@@ -39,7 +38,7 @@ func (controller *LoginController) Login(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	if err := security.VerifyPassword(user.Password, foundedUser.Password); err != nil {
+	if err := auth.VerifyPassword(user.Password, foundedUser.Password); err != nil {
 		responses.FormatResponseToCustomError(w, 401, err)
 		return
 	}

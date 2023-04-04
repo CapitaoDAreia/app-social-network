@@ -30,16 +30,13 @@ func GenerateToken(userID uint64) (string, error) {
 // Verifies if token received in Request is valid
 func ValidateToken(r *http.Request) error {
 
-	//takes request token
 	tokenString := extractToken(r)
 
-	//execute a validation in request token to verify if it is valid
 	token, err := jwt.Parse(tokenString, returnVerificationKey)
 	if err != nil {
 		return err
 	}
 
-	//Verify if request token claims equals jwt claims defined previously and if the return of token validated previously
 	if _, tokenHasCorrespondentClaims := token.Claims.(jwt.MapClaims); tokenHasCorrespondentClaims && token.Valid {
 		return nil
 	}
@@ -82,5 +79,4 @@ func ExtractUserID(r *http.Request) (uint64, error) {
 	}
 
 	return 0, errors.New("Invalid token")
-
 }

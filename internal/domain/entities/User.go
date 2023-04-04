@@ -1,7 +1,7 @@
 package entities
 
 import (
-	"api-dvbk-socialNetwork/internal/infraestructure/http/security"
+	"api-dvbk-socialNetwork/internal/infraestructure/http/auth"
 	"errors"
 	"strings"
 	"time"
@@ -55,7 +55,7 @@ func (user *User) formatUserData(stage UserStageFlags) error {
 	user.Password = strings.TrimSpace(user.Password)
 
 	if stage.CanHashPassword {
-		hashedPassword, err := security.Hash(user.Password)
+		hashedPassword, err := auth.Hash(user.Password)
 		if err != nil {
 			return err
 		}

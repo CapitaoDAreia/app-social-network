@@ -5,7 +5,6 @@ import (
 	"api-dvbk-socialNetwork/internal/domain/entities"
 	"api-dvbk-socialNetwork/internal/infraestructure/database/models"
 	"api-dvbk-socialNetwork/internal/infraestructure/http/responses"
-	"api-dvbk-socialNetwork/internal/infraestructure/http/security"
 	"encoding/json"
 	"io/ioutil"
 	"net/http"
@@ -169,12 +168,12 @@ func (controller *UsersController) UpdateUserPassword(w http.ResponseWriter, r *
 
 	returnedPassword, err := controller.userService.SearchUserPassword(requestUserId)
 
-	if err := security.VerifyPassword(password.Current, returnedPassword); err != nil {
+	if err := auth.VerifyPassword(password.Current, returnedPassword); err != nil {
 		responses.FormatResponseToCustomError(w, 500, errors.New("Current password not match!"))
 		return
 	}
 
-	hashedNewPassword, err := security.Hash(password.New)
+	hashedNewPassword, err := auth.Hash(password.New)
 	if err != nil {
 		responses.FormatResponseToCustomError(w, 500, err)
 		return
