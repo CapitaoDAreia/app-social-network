@@ -17,7 +17,7 @@ type Route struct {
 }
 
 // Config all routes in router
-func Configurate(r *mux.Router, db *sql.DB) *mux.Router {
+func ConfigurateRoutes(r *mux.Router, db *sql.DB) *mux.Router {
 	routes := []Route{}
 	usersRoutes := ConfigUsersRoutes(db)
 	postsRoutes := ConfigPostsRoutes(db)

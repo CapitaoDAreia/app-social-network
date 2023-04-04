@@ -4,10 +4,12 @@ import (
 	"api-dvbk-socialNetwork/internal/infraestructure/configuration"
 	config "api-dvbk-socialNetwork/internal/infraestructure/configuration"
 	"api-dvbk-socialNetwork/internal/infraestructure/database"
-	router "api-dvbk-socialNetwork/internal/infraestructure/http/router/mux"
+	"api-dvbk-socialNetwork/internal/infraestructure/http/router/mux/routes"
 	"fmt"
 	"log"
 	"net/http"
+
+	"github.com/gorilla/mux"
 )
 
 func init() {
@@ -18,18 +20,17 @@ func main() {
 	config.LoadAmbientConfig()
 	fmt.Printf("PORT=%v\n", config.PORT)
 
-	//Open connection with database
 	DB, err := database.ConnectWithDatabase()
 	if err != nil {
 		panic(err)
 	}
 
-	//Generate routes to feed Server
-	r := router.Generate(DB)
+	r := mux.NewRouter()
 
-	//Generate PORT valur to feed Server
+	returnR := routes.ConfigurateRoutes(r, DB)
+
 	var PORT = fmt.Sprintf(":%v", config.PORT)
 
 	fmt.Printf("Listening on PORT %v...\n", config.PORT)
-	log.Fatal(http.ListenAndServe(PORT, r))
+	log.Fatal(http.ListenAndServe(PORT, returnR))
 }
