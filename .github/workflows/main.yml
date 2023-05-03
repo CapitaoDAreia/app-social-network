@@ -1,0 +1,16 @@
+name: CI_WORKFLOW
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+    - name: runs_test
+      uses: actions/checkout@v2
+    - name: Test
+      run: go test ./...
