@@ -1,3 +1,9 @@
+# backend
+backend/.env
+
+# frontend
+frontend/.env
+
+# general
 .vscode
 .env
-vendor
