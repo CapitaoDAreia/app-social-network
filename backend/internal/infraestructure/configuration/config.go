@@ -37,7 +37,7 @@ func LoadAmbientConfig() {
 		os.Getenv("DB_PASSWORD"),
 		os.Getenv("DB_SERVICE_NAME"),
 		os.Getenv("DB_PORT"),
-		os.Getenv("DB_NAME"),
+		os.Getenv("DB_NAME_DATABASE"),
 	)
 
 	SecretKey = []byte(os.Getenv("SecretKey"))
