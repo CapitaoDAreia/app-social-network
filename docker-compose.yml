@@ -6,19 +6,28 @@ networks:
 
 services:
   backend:
-    build: .
+    build: backend/.
     env_file:
       - ./backend/.env
     ports:
       - 3000:3000
     volumes:
-      - ./backend:/usr/src/app
+      - ./backend:/usr/src/app-backend
     command: air backend/cmd/main.go
     networks:
       - main
     depends_on:
       mysql_database:
         condition: service_healthy
+
+  frontend:
+    build: frontend/.
+    ports:
+      - 8080:800
+    networks:
+      - main
+    depends_on:
+      - backend
 
   mysql_database:
     image: mysql
