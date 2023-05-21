@@ -34,8 +34,7 @@ services:
       test: ["CMD-SHELL", "mysqladmin ping -h mysql_database --silent"]
       interval: 5s
       retries: 10
-    # command: >
-    #   bash -c " sleep 5;  mysql -h localhost -u admin -p${DB_PASSWORD} -e 'CREATE TABLE IF NOT EXISTS users(id int auto_increment primary key,username varchar(100) not null,nick varchar(100) not null unique,email varchar(100) not null unique,password varchar(100) not null,CreatedAt timestamp default current_timestamp()) ENGINE=INNODB;' 
-    #   "
+    volumes:
+      - ./backend/scripts/init.sql:/docker-entrypoint-initdb.d/initiate_db.sql
     networks:
       - main
