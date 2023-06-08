@@ -19,6 +19,8 @@ services:
     depends_on:
       mysql_database:
         condition: service_healthy
+      mongo_database:
+        condition: service_healthy
 
   frontend:
     build: frontend/.
@@ -45,5 +47,22 @@ services:
       retries: 10
     volumes:
       - ./backend/scripts/init.sql:/docker-entrypoint-initdb.d/initiate_db.sql
+    networks:
+      - main
+
+  mongo_database:
+    image: mongo
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${DB_USER}
+      MONGO_INITDB_ROOT_PASSWORD: ${DB_PASSWORD}
+      MONGO_INITDB_DATABASE: ${DB_NAME_DATABASE}
+    ports:
+      - 27017:27017
+    healthcheck:
+      test:  echo 'db.stats().ok' | mongosh mongo_database:27017/${DB_NAME_DATABASE} --quiet
+      interval: 5s
+      retries: 5
+      timeout: 10s
     networks:
       - main
