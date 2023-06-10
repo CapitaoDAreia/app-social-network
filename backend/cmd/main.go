@@ -4,7 +4,9 @@ import (
 	"backend/internal/infraestructure/configuration"
 	config "backend/internal/infraestructure/configuration"
 	"backend/internal/infraestructure/database"
-	"backend/internal/infraestructure/http/router/mux/routes"
+	"backend/internal/infraestructure/http/middlewares"
+	routes_package "backend/internal/infraestructure/http/router/mux/routes"
+	"database/sql"
 	"fmt"
 	"log"
 	"net/http"
@@ -14,6 +16,32 @@ import (
 
 func init() {
 	configuration.GenerateSecretKey()
+}
+
+func configurateRoutes(r *mux.Router, db *sql.DB) *mux.Router {
+	routes := []routes_package.Route{}
+
+	usersRoutes := routes_package.ConfigUsersRoutes(db)
+	postsRoutes := routes_package.ConfigPostsRoutes(db)
+	loginRoute := routes_package.ConfigLoginRoutes(db)
+
+	routes = append(routes, usersRoutes...)
+	routes = append(routes, postsRoutes...)
+	routes = append(routes, loginRoute)
+
+	for _, route := range routes {
+		if route.NeedAuth {
+			r.HandleFunc(route.URI,
+				middlewares.Logger(
+					middlewares.Authenticate(route.Controller),
+				),
+			).Methods(route.Method)
+		} else {
+			r.HandleFunc(route.URI, route.Controller).Methods(route.Method)
+		}
+	}
+
+	return r
 }
 
 func main() {
@@ -32,7 +60,7 @@ func main() {
 
 	r := mux.NewRouter()
 
-	returnR := routes.ConfigurateRoutes(r, DB)
+	returnR := configurateRoutes(r, DB)
 
 	var PORT = fmt.Sprintf(":%v", config.APIPORT)
 
