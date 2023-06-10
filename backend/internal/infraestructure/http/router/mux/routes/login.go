@@ -4,11 +4,12 @@ import (
 	"backend/internal/application/services"
 	repository "backend/internal/infraestructure/database/repositories"
 	"backend/internal/infraestructure/http/controllers/loginController"
-	"database/sql"
 	"net/http"
+
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
-func ConfigLoginRoutes(db *sql.DB) Route {
+func ConfigLoginRoutes(db *mongo.Database) Route {
 
 	reposiry := repository.NewUsersRepository(db)
 	services := services.NewUsersServices(reposiry)

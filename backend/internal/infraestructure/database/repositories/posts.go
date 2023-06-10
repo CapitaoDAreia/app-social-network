@@ -2,14 +2,15 @@ package repository
 
 import (
 	"backend/internal/domain/entities"
-	"database/sql"
+
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 type PostsRepository struct {
-	db *sql.DB
+	db *mongo.Database
 }
 
-func NewPostsRepository(db *sql.DB) *PostsRepository {
+func NewPostsRepository(db *mongo.Database) *PostsRepository {
 	return &PostsRepository{db}
 }
 

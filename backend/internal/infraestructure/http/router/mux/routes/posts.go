@@ -4,11 +4,12 @@ import (
 	"backend/internal/application/services"
 	repository "backend/internal/infraestructure/database/repositories"
 	"backend/internal/infraestructure/http/controllers/postsController"
-	"database/sql"
 	"net/http"
+
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
-func ConfigPostsRoutes(db *sql.DB) []Route {
+func ConfigPostsRoutes(db *mongo.Database) []Route {
 
 	repository := repository.NewPostsRepository(db)
 	services := services.NewPostsServices(*repository)

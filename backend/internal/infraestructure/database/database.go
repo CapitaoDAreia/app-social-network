@@ -12,6 +12,8 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
+const USERS_COLLECTION = "users"
+
 func ConnectWithDatabase() (*sql.DB, error) {
 	DB, err := sql.Open("mysql", config.StringDatabaseKey)
 	if err != nil {

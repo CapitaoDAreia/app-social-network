@@ -6,19 +6,19 @@ import (
 	"backend/internal/infraestructure/database"
 	"backend/internal/infraestructure/http/middlewares"
 	routes_package "backend/internal/infraestructure/http/router/mux/routes"
-	"database/sql"
 	"fmt"
 	"log"
 	"net/http"
 
 	"github.com/gorilla/mux"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 func init() {
 	configuration.GenerateSecretKey()
 }
 
-func configurateRoutes(r *mux.Router, db *sql.DB) *mux.Router {
+func configurateRoutes(r *mux.Router, db *mongo.Database) *mux.Router {
 	routes := []routes_package.Route{}
 
 	usersRoutes := routes_package.ConfigUsersRoutes(db)
@@ -48,11 +48,6 @@ func main() {
 	config.LoadAmbientConfig()
 	fmt.Printf("PORT=%v\n", config.APIPORT)
 
-	DB, err := database.ConnectWithDatabase()
-	if err != nil {
-		panic(err)
-	}
-
 	MongoDB, err := database.Connect()
 	if err != nil {
 		panic(fmt.Errorf("Error connecting on mongoDB: %s", err))
@@ -60,7 +55,7 @@ func main() {
 
 	r := mux.NewRouter()
 
-	returnR := configurateRoutes(r, DB)
+	returnR := configurateRoutes(r, MongoDB)
 
 	var PORT = fmt.Sprintf(":%v", config.APIPORT)
 
