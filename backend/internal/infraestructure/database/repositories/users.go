@@ -35,6 +35,9 @@ func (repository UsersRepository) CreateUser(user entities.User) (string, error)
 		Username:  user.Username,
 		Email:     user.Email,
 		Password:  user.Password,
+		Followers: []string{},
+		Following: []string{},
+		Posts:     []string{},
 		CreatedAt: time.Now(),
 	}
 
@@ -43,7 +46,7 @@ func (repository UsersRepository) CreateUser(user entities.User) (string, error)
 		return "0", fmt.Errorf("Error on insert a new user: %s", err)
 	}
 
-	stringNewInsertedUserID := result.InsertedID.(primitive.ObjectID).String()
+	stringNewInsertedUserID := result.InsertedID.(primitive.ObjectID).Hex()
 
 	return stringNewInsertedUserID, nil
 }

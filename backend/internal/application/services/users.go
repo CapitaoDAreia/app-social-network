@@ -33,10 +33,7 @@ func NewUsersServices(userRepository repositories.UsersRepository) *usersService
 
 func (service *usersService) CreateUser(user entities.User) (string, error) {
 
-	possibleExistentUser, err := service.usersRepository.SearchUserByEmail(user.Email)
-	if err != nil {
-		return "", fmt.Errorf("Error on SearchUserByEmail to CreateUser: %s", err)
-	}
+	possibleExistentUser, _ := service.usersRepository.SearchUserByEmail(user.Email)
 
 	if possibleExistentUser.Email == user.Email {
 		return "", fmt.Errorf("This e-mail is already in use.")
