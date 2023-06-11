@@ -1,36 +1,37 @@
 package services
 
 import (
-	repository "backend/internal/infraestructure/database/repositories"
+	"backend/internal/domain/entities"
+	"backend/internal/domain/repositories"
 )
 
 type PostServices interface {
-	// CreatePost(post entities.Post) (uint64, error)
+	CreatePost(post entities.Post) (string, error)
 	// SearchPost(postID uint64) (entities.Post, error)
 	// SearchPosts(tokenUserID uint64) ([]entities.Post, error)
 	// UpdatePost(postRequestID uint64, updatedPost entities.Post) error
 	// DeletePost(postRequestID uint64) error
 	// SearchUserPosts(requestUserId uint64) ([]entities.Post, error)
-	// LikePost(postID uint64) error
+	LikePost(postID, tokenUserID string) error
 	// UnlikePost(postID uint64) error
 }
 
 type postServices struct {
-	postsRepository repository.PostsRepository
+	postsRepository repositories.PostsRepository
 }
 
-func NewPostsServices(postsRepository repository.PostsRepository) *postServices {
+func NewPostsServices(postsRepository repositories.PostsRepository) *postServices {
 	return &postServices{postsRepository}
 }
 
-// func (service *postServices) CreatePost(post entities.Post) (uint64, error) {
-// 	ID, err := service.postsRepository.CreatePost(post)
-// 	if err != nil {
-// 		return 0, err
-// 	}
+func (service *postServices) CreatePost(post entities.Post) (string, error) {
+	ID, err := service.postsRepository.CreatePost(post)
+	if err != nil {
+		return "", err
+	}
 
-// 	return ID, nil
-// }
+	return ID, nil
+}
 
 // func (service *postServices) SearchPost(postID uint64) (entities.Post, error) {
 // 	post, err := service.postsRepository.SearchPost(postID)
@@ -78,14 +79,14 @@ func NewPostsServices(postsRepository repository.PostsRepository) *postServices 
 
 // }
 
-// func (service *postServices) LikePost(postID uint64) error {
-// 	err := service.postsRepository.LikePost(postID)
-// 	if err != nil {
-// 		return err
-// 	}
+func (service *postServices) LikePost(postID, tokenUserID string) error {
+	err := service.postsRepository.LikePost(postID, tokenUserID)
+	if err != nil {
+		return err
+	}
 
-// 	return nil
-// }
+	return nil
+}
 
 // func (service *postServices) UnlikePost(postID uint64) error {
 // 	err := service.postsRepository.UnlikePost(postID)

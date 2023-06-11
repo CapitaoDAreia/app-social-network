@@ -1,12 +1,14 @@
 package repositories
 
+import "backend/internal/domain/entities"
+
 type PostsRepository interface {
-	// CreatePost(post entities.Post) (uint64, error)
+	CreatePost(post entities.Post) (string, error)
 	// SearchPost(postID uint64) (entities.Post, error)
 	// SearchPosts(tokenUserID uint64) ([]entities.Post, error)
 	// UpdatePost(postRequestID uint64, updatedPost entities.Post)
 	// DeletePost(postRequestID uint64) error
 	// SearchUserPosts(requestUserId uint64) ([]entities.Post, error)
-	// LikePost(postID uint64) error
+	LikePost(postID, tokenUserID string) error
 	// UnlikePost(postID uint64) error
 }

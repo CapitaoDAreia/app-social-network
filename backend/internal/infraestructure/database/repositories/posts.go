@@ -1,36 +1,50 @@
 package repository
 
 import (
+	"backend/internal/domain/entities"
+	"backend/internal/infraestructure/database"
+	"backend/internal/infraestructure/database/models"
+	"context"
+	"fmt"
+	"time"
+
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
 type PostsRepository struct {
-	db *mongo.Database
+	collection *mongo.Collection
 }
 
 func NewPostsRepository(db *mongo.Database) *PostsRepository {
-	return &PostsRepository{db}
+	collection := db.Collection(database.POSTS_COLLECTION)
+
+	return &PostsRepository{
+		collection: collection,
+	}
 }
 
-// func (p PostsRepository) CreatePost(post entities.Post) (uint64, error) {
-// 	statement, err := p.db.Prepare(`insert into posts (title, content, authorId) value(?, ?, ?)`)
-// 	if err != nil {
-// 		return 0, err
-// 	}
-// 	defer statement.Close()
+func (repository PostsRepository) CreatePost(post entities.Post) (string, error) {
 
-// 	result, err := statement.Exec(post.Title, post.Content, post.AuthorID)
-// 	if err != nil {
-// 		return 0, err
-// 	}
+	newPost := models.Post{
+		Title:      post.Title,
+		Content:    post.Content,
+		AuthorID:   post.AuthorID,
+		AuthorNick: post.AuthorNick,
+		Likes:      []string{},
+		CreatedAt:  time.Now(),
+	}
 
-// 	lastId, err := result.LastInsertId()
-// 	if err != nil {
-// 		return 0, err
-// 	}
+	result, err := repository.collection.InsertOne(context.Background(), newPost)
+	if err != nil {
+		return "0", fmt.Errorf("Error on insert a new post: %s", err)
+	}
 
-// 	return uint64(lastId), nil
-// }
+	stringNewInsertedPostID := result.InsertedID.(primitive.ObjectID).Hex()
+
+	return stringNewInsertedPostID, nil
+}
 
 // func (p PostsRepository) SearchPost(postID uint64) (entities.Post, error) {
 // 	rows, err := p.db.Query(`
@@ -163,19 +177,26 @@ func NewPostsRepository(db *mongo.Database) *PostsRepository {
 // 	return posts, nil
 // }
 
-// func (p PostsRepository) LikePost(postID uint64) error {
-// 	statement, err := p.db.Prepare(`update posts set likes = likes + 1 where id = ?`)
-// 	if err != nil {
-// 		return err
-// 	}
-// 	defer statement.Close()
+func (repository PostsRepository) LikePost(postID, tokenUserID string) error {
+	primitiveObjId, _ := primitive.ObjectIDFromHex(postID)
 
-// 	if _, err := statement.Exec(postID); err != nil {
-// 		return err
-// 	}
+	filter := bson.M{
+		"_id": primitiveObjId,
+	}
 
-// 	return nil
-// }
+	update := bson.M{
+		"$addToSet": bson.M{
+			"likes": tokenUserID,
+		},
+	}
+
+	_, err := repository.collection.UpdateOne(context.Background(), filter, update)
+	if err != nil {
+		return fmt.Errorf("Error on UpdateOne to LikePost: %s", err)
+	}
+
+	return nil
+}
 
 // func (p PostsRepository) UnlikePost(postID uint64) error {
 // 	statement, err := p.db.Prepare(`

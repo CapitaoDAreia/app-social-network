@@ -22,11 +22,11 @@ func configurateRoutes(r *mux.Router, db *mongo.Database) *mux.Router {
 	routes := []routes_package.Route{}
 
 	usersRoutes := routes_package.ConfigUsersRoutes(db)
-	// postsRoutes := routes_package.ConfigPostsRoutes(db)
+	postsRoutes := routes_package.ConfigPostsRoutes(db)
 	loginRoute := routes_package.ConfigLoginRoutes(db)
 
 	routes = append(routes, usersRoutes...)
-	// routes = append(routes, postsRoutes...)
+	routes = append(routes, postsRoutes...)
 	routes = append(routes, loginRoute)
 
 	for _, route := range routes {

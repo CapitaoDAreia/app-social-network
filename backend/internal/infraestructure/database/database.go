@@ -13,6 +13,7 @@ import (
 )
 
 const USERS_COLLECTION = "users"
+const POSTS_COLLECTION = "posts"
 
 func ConnectWithDatabase() (*sql.DB, error) {
 	DB, err := sql.Open("mysql", config.StringDatabaseKey)
