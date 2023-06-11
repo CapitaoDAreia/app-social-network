@@ -19,6 +19,7 @@ type UsersRepository struct {
 
 // NewUserRepository Receives a database opened in controller and instances it in users struct.
 func NewUsersRepository(db *mongo.Database) *UsersRepository {
+
 	collection := db.Collection(database.USERS_COLLECTION)
 	return &UsersRepository{
 		collection: collection,
@@ -28,6 +29,7 @@ func NewUsersRepository(db *mongo.Database) *UsersRepository {
 // CreateUser Creates a user on database.
 // This is a method of users struct.
 func (repository UsersRepository) CreateUser(user entities.User) (string, error) {
+
 	newUser := models.User{
 		Nick:      user.Nick,
 		Username:  user.Username,
@@ -48,6 +50,7 @@ func (repository UsersRepository) CreateUser(user entities.User) (string, error)
 
 // Search for users by username or nick
 func (repository UsersRepository) SearchUsers(usernameOrNickQuery string) ([]entities.User, error) {
+
 	filter := bson.M{
 		"$or": []bson.M{
 			{"nick": bson.M{
@@ -68,7 +71,7 @@ func (repository UsersRepository) SearchUsers(usernameOrNickQuery string) ([]ent
 
 	var users []entities.User
 
-	err = result.All(context.Background(), users)
+	err = result.All(context.Background(), &users)
 	if err != nil {
 		return nil, err
 	}
@@ -76,14 +79,23 @@ func (repository UsersRepository) SearchUsers(usernameOrNickQuery string) ([]ent
 	return users, nil
 }
 
-func (repository UsersRepository) SearchUser(requestID uint64) (entities.User, error) {
+func (repository UsersRepository) SearchUser(requestID string) (entities.User, error) {
+
+	primitiveObjId, _ := primitive.ObjectIDFromHex(requestID)
+
 	filter := bson.M{
-		"_id": requestID,
+		"_id": primitiveObjId,
 	}
 
 	var user entities.User
 
 	result := repository.collection.FindOne(context.Background(), filter)
+
+	if result.Err() != nil {
+		if result.Err().Error() == mongo.ErrNoDocuments.Error() {
+			return entities.User{}, fmt.Errorf("User not found")
+		}
+	}
 
 	if err := result.Decode(&user); err != nil {
 		return entities.User{}, fmt.Errorf("Error on decode SearchUser: %s", err)
@@ -93,6 +105,7 @@ func (repository UsersRepository) SearchUser(requestID uint64) (entities.User, e
 }
 
 func (repository UsersRepository) SearchUserByEmail(email string) (entities.User, error) {
+
 	filter := bson.M{
 		"email": email,
 	}
@@ -108,9 +121,12 @@ func (repository UsersRepository) SearchUserByEmail(email string) (entities.User
 	return user, nil
 }
 
-func (repository UsersRepository) UpdateUser(ID uint64, user entities.User) (uint64, error) {
+func (repository UsersRepository) UpdateUser(ID string, user entities.User) (uint64, error) {
+
+	primitiveObjId, _ := primitive.ObjectIDFromHex(ID)
+
 	filter := bson.M{
-		"_id": ID,
+		"_id": primitiveObjId,
 	}
 
 	updateOptions := bson.M{
@@ -129,33 +145,35 @@ func (repository UsersRepository) UpdateUser(ID uint64, user entities.User) (uin
 
 	modifiedCount := uint64(result.ModifiedCount)
 
+	fmt.Println(modifiedCount)
+
 	return modifiedCount, nil
 }
 
-func (repository UsersRepository) DeleteUser(ID uint64) (uint64, error) {
+func (repository UsersRepository) DeleteUser(ID string) (uint64, error) {
+
+	primitiveObjId, _ := primitive.ObjectIDFromHex(ID)
+
 	filter := bson.M{
-		"_id": ID,
+		"_id": primitiveObjId,
 	}
 
-	updateOptions := bson.M{
-		"$set": bson.M{
-			"deletedAt": time.Now(),
-		},
-	}
-
-	result, err := repository.collection.UpdateOne(context.Background(), filter, updateOptions)
+	result, err := repository.collection.DeleteOne(context.Background(), filter)
 	if err != nil {
 		return 0, fmt.Errorf("Error on UpdateOne to DeleteUser: %s", err)
 	}
 
-	modifiedCount := uint64(result.ModifiedCount)
+	modifiedCount := uint64(result.DeletedCount)
 
 	return modifiedCount, nil
 }
 
-func (repository UsersRepository) Follow(followedID, followerID uint64) error {
+func (repository UsersRepository) Follow(followedID, followerID string) error {
+
+	primitiveObjId, _ := primitive.ObjectIDFromHex(followedID)
+
 	filter := bson.M{
-		"_id": followedID,
+		"_id": primitiveObjId,
 	}
 
 	update := bson.M{
@@ -172,114 +190,105 @@ func (repository UsersRepository) Follow(followedID, followerID uint64) error {
 	return nil
 }
 
-// func (u UsersRepository) UnFollow(followedID, followerID uint64) error {
-// 	statement, err := u.db.Prepare("delete from followers where user_id = ? and follower_id = ?")
-// 	if err != nil {
-// 		return err
-// 	}
+func (repository UsersRepository) UnFollow(followedID, followerID string) error {
 
-// 	if _, err := statement.Exec(
-// 		followedID,
-// 		followerID,
-// 	); err != nil {
-// 		return err
-// 	}
+	primitiveObjId, _ := primitive.ObjectIDFromHex(followedID)
 
-// 	return nil
-// }
+	filter := bson.M{
+		"_id": primitiveObjId,
+	}
 
-// func (u UsersRepository) SearchFollowersOfAnUser(userID uint64) ([]entities.User, error) {
-// 	rows, err := u.db.Query(
-// 		`select u.id, u.username, u.nick, u.email, u.createdAt
-// 		from users u inner join followers s
-// 		on u.id = s.follower_id where s.user_id = ?`, userID,
-// 	)
-// 	if err != nil {
-// 		return []entities.User{}, err
-// 	}
-// 	defer rows.Close()
+	update := bson.M{
+		"$pull": bson.M{
+			"followers": followerID,
+		},
+	}
 
-// 	var followers []entities.User
+	_, err := repository.collection.UpdateOne(context.Background(), filter, update)
+	if err != nil {
+		return fmt.Errorf("Error on UpdateOne to UnFollow: %s", err)
+	}
 
-// 	for rows.Next() {
-// 		var user entities.User
+	return nil
+}
 
-// 		if err := rows.Scan(
-// 			&user.ID,
-// 			&user.Username,
-// 			&user.Nick,
-// 			&user.Email,
-// 			&user.CreatedAt,
-// 		); err != nil {
-// 			return []entities.User{}, err
-// 		}
+func (repository UsersRepository) SearchFollowersOfAnUser(userID string) ([]string, error) {
 
-// 		followers = append(followers, user)
-// 	}
+	primitiveObjId, _ := primitive.ObjectIDFromHex(userID)
 
-// 	return followers, nil
-// }
+	filter := bson.M{
+		"_id": primitiveObjId,
+	}
 
-// func (u UsersRepository) SearchWhoAnUserFollow(userID uint64) ([]entities.User, error) {
-// 	rows, err := u.db.Query(`
-// 		select u.id, u.username, u.nick, u.email, u.createdAt
-// 		from users u inner join followers s on u.id = s.user_id where s.follower_id = ?
-// 	`, userID)
-// 	if err != nil {
-// 		return []entities.User{}, err
-// 	}
-// 	defer rows.Close()
+	var user entities.User
 
-// 	var followers []entities.User
+	result := repository.collection.FindOne(context.Background(), filter)
 
-// 	for rows.Next() {
-// 		var user entities.User
+	if err := result.Decode(&user); err != nil {
+		return []string{}, fmt.Errorf("Erro on decode user to SearchFollowersOfAnUser: %s", err)
+	}
 
-// 		if err := rows.Scan(
-// 			&user.ID,
-// 			&user.Username,
-// 			&user.Nick,
-// 			&user.Email,
-// 			&user.CreatedAt,
-// 		); err != nil {
-// 			return []entities.User{}, err
-// 		}
+	return user.Followers, nil
+}
 
-// 		followers = append(followers, user)
-// 	}
+func (repository UsersRepository) SearchWhoAnUserFollow(userID string) ([]string, error) {
 
-// 	return followers, nil
-// }
+	primitiveObjId, _ := primitive.ObjectIDFromHex(userID)
 
-// func (u UsersRepository) SearchUserPassword(userID uint64) (string, error) {
-// 	rows, err := u.db.Query(`select password from users where id = ? `, userID)
-// 	if err != nil {
-// 		return "", err
-// 	}
-// 	defer rows.Close()
+	filter := bson.M{
+		"_id": primitiveObjId,
+	}
 
-// 	var searchedUser entities.User
+	var user entities.User
 
-// 	for rows.Next() {
-// 		if err := rows.Scan(
-// 			&searchedUser.Password,
-// 		); err != nil {
-// 			return "", err
-// 		}
-// 	}
-// 	return searchedUser.Password, err
-// }
+	result := repository.collection.FindOne(context.Background(), filter)
 
-// func (u UsersRepository) UpdateUserPassword(requestUserId uint64, hashedNewPasswordStringed string) error {
-// 	statement, err := u.db.Prepare(`update users set password = ? where id = ?`)
-// 	if err != nil {
-// 		return err
-// 	}
-// 	defer statement.Close()
+	if err := result.Decode(&user); err != nil {
+		return []string{}, fmt.Errorf("Erro on decode user to SearchWhoAnUserFollow: %s", err)
+	}
 
-// 	if _, err := statement.Exec(hashedNewPasswordStringed, requestUserId); err != nil {
-// 		return err
-// 	}
+	return user.Following, nil
+}
 
-// 	return nil
-// }
+func (repository UsersRepository) SearchUserPassword(userID string) (string, error) {
+
+	primitiveObjId, _ := primitive.ObjectIDFromHex(userID)
+
+	filter := bson.M{
+		"_id": primitiveObjId,
+	}
+
+	var user entities.User
+
+	result := repository.collection.FindOne(context.Background(), filter)
+
+	if err := result.Decode(&user); err != nil {
+		return "", fmt.Errorf("Erro on decode user to SearchUserPassword: %s", err)
+	}
+
+	return user.Password, nil
+}
+
+func (repository UsersRepository) UpdateUserPassword(requestUserId string, hashedNewPasswordStringed string) (uint64, error) {
+
+	primitiveObjId, _ := primitive.ObjectIDFromHex(requestUserId)
+
+	filter := bson.M{
+		"_id": primitiveObjId,
+	}
+
+	updateOptions := bson.M{
+		"$set": bson.M{
+			"password": hashedNewPasswordStringed,
+		},
+	}
+
+	result, err := repository.collection.UpdateOne(context.Background(), filter, updateOptions)
+	if err != nil {
+		return 0, fmt.Errorf("Error on UpdateOne to UpdateUserPassword: %s", err)
+	}
+
+	modifiedCount := uint64(result.ModifiedCount)
+
+	return modifiedCount, nil
+}

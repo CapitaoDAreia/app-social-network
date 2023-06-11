@@ -4,7 +4,7 @@ import "time"
 
 // User represents an user
 type User struct {
-	ID        uint64    `json:"_id,omitempty"`
+	ID        string    `json:"_id,omitempty"`
 	Username  string    `json:"username,omitempty"`
 	Nick      string    `json:"nick,omitempty"`
 	Email     string    `json:"email,omitempty"`

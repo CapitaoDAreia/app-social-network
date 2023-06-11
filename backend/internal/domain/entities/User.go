@@ -11,7 +11,7 @@ import (
 
 // User represents an user
 type User struct {
-	ID        uint64    `json:"_id,omitempty"`
+	ID        string    `json:"_id,omitempty" bson:"_id,omitempty"`
 	Username  string    `json:"username,omitempty"`
 	Nick      string    `json:"nick,omitempty"`
 	Email     string    `json:"email,omitempty"`
@@ -19,9 +19,9 @@ type User struct {
 	Followers []string  `json:"followers,omitempty"`
 	Following []string  `json:"following,omitempty"`
 	Posts     []string  `json:"posts,omitempty"`
-	CreatedAt time.Time `json:"createdAt,omitempty"`
-	UpdatedAt time.Time `json:"updatedAt,omitempty"`
-	DeletedAt time.Time `json:"deletedAt,omitempty"`
+	CreatedAt time.Time `json:"createdAt,omitempty" bson:"createdAt,omitempty"`
+	UpdatedAt time.Time `json:"updatedAt,omitempty" bson:"updatedAt,omitempty"`
+	DeletedAt time.Time `json:"deletedAt,omitempty" bson:"deletedAt,omitempty"`
 }
 
 type UserStageFlags struct {

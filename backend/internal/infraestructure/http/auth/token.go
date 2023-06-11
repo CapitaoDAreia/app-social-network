@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"strconv"
 	"strings"
 	"time"
 
@@ -15,7 +14,7 @@ import (
 var mockedKeySecret = []byte("SecretKey")
 
 // Create an token that defines user permissions
-func GenerateToken(userID uint64) (string, error) {
+func GenerateToken(userID string) (string, error) {
 	permissions := jwt.MapClaims{}
 
 	permissions["authorized"] = true
@@ -61,22 +60,22 @@ func returnVerificationKey(token *jwt.Token) (interface{}, error) {
 	return config.SecretKey, nil
 }
 
-func ExtractUserID(r *http.Request) (uint64, error) {
+func ExtractUserID(r *http.Request) (string, error) {
 	tokenString := extractToken(r)
 
 	token, err := jwt.Parse(tokenString, returnVerificationKey)
 	if err != nil {
-		return 0, err
+		return "", err
 	}
 
 	if permissions, tokenHasCorrespondentClaims := token.Claims.(jwt.MapClaims); tokenHasCorrespondentClaims && token.Valid {
-		userID, err := strconv.ParseUint(fmt.Sprintf("%.0f", permissions["userId"]), 10, 64)
+		userID := fmt.Sprintf("%s", permissions["userId"])
 		if err != nil {
-			return 0, nil
+			return "", nil
 		}
 
 		return userID, nil
 	}
 
-	return 0, errors.New("Invalid token")
+	return "", errors.New("Invalid token")
 }

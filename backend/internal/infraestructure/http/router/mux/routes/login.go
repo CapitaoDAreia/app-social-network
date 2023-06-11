@@ -11,8 +11,8 @@ import (
 
 func ConfigLoginRoutes(db *mongo.Database) Route {
 
-	reposiry := repository.NewUsersRepository(db)
-	services := services.NewUsersServices(reposiry)
+	repository := repository.NewUsersRepository(db)
+	services := services.NewUsersServices(repository)
 	controllers := loginController.NewLoginController(services)
 
 	var LoginRoute = Route{
