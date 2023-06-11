@@ -9,6 +9,9 @@ type User struct {
 	Nick      string    `json:"nick,omitempty"`
 	Email     string    `json:"email,omitempty"`
 	Password  string    `json:"password,omitempty"`
+	Followers []string  `json:"followers,omitempty"`
+	Following []string  `json:"following,omitempty"`
+	Posts     []string  `json:"posts,omitempty"`
 	CreatedAt time.Time `json:"createdAt,omitempty"`
 	UpdatedAt time.Time `json:"updatedAt,omitempty"`
 	DeletedAt time.Time `json:"deletedAt,omitempty"`

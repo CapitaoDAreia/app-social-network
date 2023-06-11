@@ -51,36 +51,36 @@ func ConfigUsersRoutes(db *mongo.Database) []Route {
 			Controller: controllers.DeleteUser,
 			NeedAuth:   true,
 		},
-		{
-			URI:        "/users/{userId}/follow",
-			Method:     http.MethodPost,
-			Controller: controllers.FollowUser,
-			NeedAuth:   true,
-		},
-		{
-			URI:        "/users/{userId}/unfollow",
-			Method:     http.MethodPost,
-			Controller: controllers.UnFollowUser,
-			NeedAuth:   true,
-		},
-		{
-			URI:        "/users/{userId}/followers",
-			Method:     http.MethodGet,
-			Controller: controllers.GetFollowersOfAnUser,
-			NeedAuth:   true,
-		},
-		{
-			URI:        "/users/{userId}/following",
-			Method:     http.MethodGet,
-			Controller: controllers.GetWhoAnUserFollow,
-			NeedAuth:   true,
-		},
-		{
-			URI:        "/users/{userId}/update-password",
-			Method:     http.MethodPost,
-			Controller: controllers.UpdateUserPassword,
-			NeedAuth:   true,
-		},
+		// 	{
+		// 		URI:        "/users/{userId}/follow",
+		// 		Method:     http.MethodPost,
+		// 		Controller: controllers.FollowUser,
+		// 		NeedAuth:   true,
+		// 	},
+		// 	{
+		// 		URI:        "/users/{userId}/unfollow",
+		// 		Method:     http.MethodPost,
+		// 		Controller: controllers.UnFollowUser,
+		// 		NeedAuth:   true,
+		// 	},
+		// 	{
+		// 		URI:        "/users/{userId}/followers",
+		// 		Method:     http.MethodGet,
+		// 		Controller: controllers.GetFollowersOfAnUser,
+		// 		NeedAuth:   true,
+		// 	},
+		// 	{
+		// 		URI:        "/users/{userId}/following",
+		// 		Method:     http.MethodGet,
+		// 		Controller: controllers.GetWhoAnUserFollow,
+		// 		NeedAuth:   true,
+		// 	},
+		// 	{
+		// 		URI:        "/users/{userId}/update-password",
+		// 		Method:     http.MethodPost,
+		// 		Controller: controllers.UpdateUserPassword,
+		// 		NeedAuth:   true,
+		// 	},
 	}
 
 	return userRoutes

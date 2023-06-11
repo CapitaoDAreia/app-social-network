@@ -3,16 +3,14 @@ package usersController
 import (
 	"backend/internal/application/services"
 	"backend/internal/domain/entities"
-	"backend/internal/infraestructure/database/models"
+	"backend/internal/infraestructure/http/auth"
 	"backend/internal/infraestructure/http/responses"
 	"encoding/json"
+	"errors"
 	"io/ioutil"
 	"net/http"
-	"strings"
-
-	"backend/internal/infraestructure/http/auth"
-	"errors"
 	"strconv"
+	"strings"
 
 	"github.com/gorilla/mux"
 )
@@ -46,13 +44,13 @@ func (controller *UsersController) CreateUser(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	user.ID, err = controller.userService.CreateUser(user)
+	createdUserID, err := controller.userService.CreateUser(user)
 	if err != nil {
 		responses.FormatResponseToCustomError(w, 400, err)
 		return
 	}
 
-	responses.FormatResponseToJSON(w, 201, user.ID)
+	responses.FormatResponseToJSON(w, 201, createdUserID)
 }
 
 // Update an user in database
@@ -93,13 +91,13 @@ func (controller *UsersController) UpdateUser(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	err = controller.userService.UpdateUser(requestID, user)
+	modifiedCount, err := controller.userService.UpdateUser(requestID, user)
 	if err != nil {
 		responses.FormatResponseToCustomError(w, 500, err)
 		return
 	}
 
-	responses.FormatResponseToJSON(w, 204, nil)
+	responses.FormatResponseToJSON(w, 204, modifiedCount)
 }
 
 // Search for an specific user in database
@@ -134,60 +132,60 @@ func (controller *UsersController) GetUsers(w http.ResponseWriter, r *http.Reque
 	responses.FormatResponseToJSON(w, 200, users)
 }
 
-func (controller *UsersController) UpdateUserPassword(w http.ResponseWriter, r *http.Request) {
-	parameters := mux.Vars(r)
-	requestUserId, err := strconv.ParseUint(parameters["userId"], 10, 64)
-	if err != nil {
-		responses.FormatResponseToCustomError(w, http.StatusBadRequest, err)
-		return
-	}
+// func (controller *UsersController) UpdateUserPassword(w http.ResponseWriter, r *http.Request) {
+// 	parameters := mux.Vars(r)
+// 	requestUserId, err := strconv.ParseUint(parameters["userId"], 10, 64)
+// 	if err != nil {
+// 		responses.FormatResponseToCustomError(w, http.StatusBadRequest, err)
+// 		return
+// 	}
 
-	tokenUserId, err := auth.ExtractUserID(r)
-	if err != nil {
-		responses.FormatResponseToCustomError(w, 500, err)
-		return
-	}
+// 	tokenUserId, err := auth.ExtractUserID(r)
+// 	if err != nil {
+// 		responses.FormatResponseToCustomError(w, 500, err)
+// 		return
+// 	}
 
-	if tokenUserId != requestUserId {
-		responses.FormatResponseToCustomError(w, http.StatusUnauthorized, errors.New("Hmmm... Really?"))
-		return
-	}
+// 	if tokenUserId != requestUserId {
+// 		responses.FormatResponseToCustomError(w, http.StatusUnauthorized, errors.New("Hmmm... Really?"))
+// 		return
+// 	}
 
-	var password models.Password
+// 	var password models.Password
 
-	bodyRequest, err := ioutil.ReadAll(r.Body)
-	if err != nil {
-		responses.FormatResponseToCustomError(w, http.StatusBadRequest, err)
-		return
-	}
+// 	bodyRequest, err := ioutil.ReadAll(r.Body)
+// 	if err != nil {
+// 		responses.FormatResponseToCustomError(w, http.StatusBadRequest, err)
+// 		return
+// 	}
 
-	if err := json.Unmarshal(bodyRequest, &password); err != nil {
-		responses.FormatResponseToCustomError(w, 500, err)
-		return
-	}
+// 	if err := json.Unmarshal(bodyRequest, &password); err != nil {
+// 		responses.FormatResponseToCustomError(w, 500, err)
+// 		return
+// 	}
 
-	returnedPassword, err := controller.userService.SearchUserPassword(requestUserId)
+// 	returnedPassword, err := controller.userService.SearchUserPassword(requestUserId)
 
-	if err := auth.VerifyPassword(password.Current, returnedPassword); err != nil {
-		responses.FormatResponseToCustomError(w, 500, errors.New("Current password not match!"))
-		return
-	}
+// 	if err := auth.VerifyPassword(password.Current, returnedPassword); err != nil {
+// 		responses.FormatResponseToCustomError(w, 500, errors.New("Current password not match!"))
+// 		return
+// 	}
 
-	hashedNewPassword, err := auth.Hash(password.New)
-	if err != nil {
-		responses.FormatResponseToCustomError(w, 500, err)
-		return
-	}
+// 	hashedNewPassword, err := auth.Hash(password.New)
+// 	if err != nil {
+// 		responses.FormatResponseToCustomError(w, 500, err)
+// 		return
+// 	}
 
-	hashedNewPasswordStringed := string(hashedNewPassword)
+// 	hashedNewPasswordStringed := string(hashedNewPassword)
 
-	if err := controller.userService.UpdateUserPassword(requestUserId, hashedNewPasswordStringed); err != nil {
-		responses.FormatResponseToCustomError(w, 500, err)
-		return
-	}
+// 	if err := controller.userService.UpdateUserPassword(requestUserId, hashedNewPasswordStringed); err != nil {
+// 		responses.FormatResponseToCustomError(w, 500, err)
+// 		return
+// 	}
 
-	responses.FormatResponseToJSON(w, http.StatusNoContent, nil)
-}
+// 	responses.FormatResponseToJSON(w, http.StatusNoContent, nil)
+// }
 
 // Delete an user in database
 func (controller *UsersController) DeleteUser(w http.ResponseWriter, r *http.Request) {
@@ -210,12 +208,13 @@ func (controller *UsersController) DeleteUser(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	if err := controller.userService.DeleteUser(requestID); err != nil {
+	deletedId, err := controller.userService.DeleteUser(requestID)
+	if err != nil {
 		responses.FormatResponseToCustomError(w, 500, err)
 		return
 	}
 
-	responses.FormatResponseToJSON(w, 204, nil)
+	responses.FormatResponseToJSON(w, 204, deletedId)
 }
 
 // Sets an user to follow another
@@ -246,65 +245,65 @@ func (controller *UsersController) FollowUser(w http.ResponseWriter, r *http.Req
 	responses.FormatResponseToJSON(w, http.StatusNoContent, nil)
 }
 
-func (controller *UsersController) UnFollowUser(w http.ResponseWriter, r *http.Request) {
-	followerID, err := auth.ExtractUserID(r)
-	if err != nil {
-		responses.FormatResponseToCustomError(w, 403, err)
-		return
-	}
+// func (controller *UsersController) UnFollowUser(w http.ResponseWriter, r *http.Request) {
+// 	followerID, err := auth.ExtractUserID(r)
+// 	if err != nil {
+// 		responses.FormatResponseToCustomError(w, 403, err)
+// 		return
+// 	}
 
-	parameters := mux.Vars(r)
+// 	parameters := mux.Vars(r)
 
-	followedID, err := strconv.ParseUint(parameters["userId"], 10, 64)
-	if err != nil {
-		responses.FormatResponseToCustomError(w, http.StatusBadRequest, err)
-		return
-	}
+// 	followedID, err := strconv.ParseUint(parameters["userId"], 10, 64)
+// 	if err != nil {
+// 		responses.FormatResponseToCustomError(w, http.StatusBadRequest, err)
+// 		return
+// 	}
 
-	if followedID == followerID {
-		responses.FormatResponseToCustomError(w, http.StatusForbidden, errors.New("You are fated to follow yourself forever!"))
-		return
-	}
+// 	if followedID == followerID {
+// 		responses.FormatResponseToCustomError(w, http.StatusForbidden, errors.New("You are fated to follow yourself forever!"))
+// 		return
+// 	}
 
-	if err := controller.userService.UnFollow(followedID, followerID); err != nil {
-		responses.FormatResponseToCustomError(w, 500, err)
-		return
-	}
+// 	if err := controller.userService.UnFollow(followedID, followerID); err != nil {
+// 		responses.FormatResponseToCustomError(w, 500, err)
+// 		return
+// 	}
 
-	responses.FormatResponseToJSON(w, http.StatusNoContent, nil)
-}
+// 	responses.FormatResponseToJSON(w, http.StatusNoContent, nil)
+// }
 
-func (controller *UsersController) GetFollowersOfAnUser(w http.ResponseWriter, r *http.Request) {
-	params := mux.Vars(r)
-	userID, err := strconv.ParseUint(params["userId"], 10, 64)
-	if err != nil {
-		responses.FormatResponseToCustomError(w, 400, err)
-		return
-	}
+// func (controller *UsersController) GetFollowersOfAnUser(w http.ResponseWriter, r *http.Request) {
+// 	params := mux.Vars(r)
+// 	userID, err := strconv.ParseUint(params["userId"], 10, 64)
+// 	if err != nil {
+// 		responses.FormatResponseToCustomError(w, 400, err)
+// 		return
+// 	}
 
-	followers, err := controller.userService.SearchFollowersOfAnUser(userID)
-	if err != nil {
-		responses.FormatResponseToCustomError(w, 500, err)
-		return
-	}
+// 	followers, err := controller.userService.SearchFollowersOfAnUser(userID)
+// 	if err != nil {
+// 		responses.FormatResponseToCustomError(w, 500, err)
+// 		return
+// 	}
 
-	responses.FormatResponseToJSON(w, 200, followers)
+// 	responses.FormatResponseToJSON(w, 200, followers)
 
-}
+// }
 
-func (controller *UsersController) GetWhoAnUserFollow(w http.ResponseWriter, r *http.Request) {
-	params := mux.Vars(r)
-	userID, err := strconv.ParseUint(params["userId"], 10, 64)
-	if err != nil {
-		responses.FormatResponseToCustomError(w, 400, err)
-		return
-	}
+// func (controller *UsersController) GetWhoAnUserFollow(w http.ResponseWriter, r *http.Request) {
+// 	params := mux.Vars(r)
+// 	userID, err := strconv.ParseUint(params["userId"], 10, 64)
+// 	if err != nil {
+// 		responses.FormatResponseToCustomError(w, 400, err)
+// 		return
+// 	}
 
-	followers, err := controller.userService.SearchWhoAnUserFollow(userID)
-	if err != nil {
-		responses.FormatResponseToCustomError(w, 500, err)
-		return
-	}
+// 	followers, err := controller.userService.SearchWhoAnUserFollow(userID)
+// 	if err != nil {
+// 		responses.FormatResponseToCustomError(w, 500, err)
+// 		return
+// 	}
 
-	responses.FormatResponseToJSON(w, 200, followers)
-}
+// 	responses.FormatResponseToJSON(w, 200, followers)
+// }

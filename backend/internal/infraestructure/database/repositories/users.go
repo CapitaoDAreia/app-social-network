@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
@@ -26,7 +27,7 @@ func NewUsersRepository(db *mongo.Database) *UsersRepository {
 
 // CreateUser Creates a user on database.
 // This is a method of users struct.
-func (repository UsersRepository) CreateUser(user entities.User) (uint64, error) {
+func (repository UsersRepository) CreateUser(user entities.User) (string, error) {
 	newUser := models.User{
 		Nick:      user.Nick,
 		Username:  user.Username,
@@ -37,15 +38,15 @@ func (repository UsersRepository) CreateUser(user entities.User) (uint64, error)
 
 	result, err := repository.collection.InsertOne(context.Background(), newUser)
 	if err != nil {
-		return 0, fmt.Errorf("Error on insert a new user: %s", err)
+		return "0", fmt.Errorf("Error on insert a new user: %s", err)
 	}
 
-	newInsertedUserID := result.InsertedID.(uint64)
+	stringNewInsertedUserID := result.InsertedID.(primitive.ObjectID).String()
 
-	return newInsertedUserID, nil
+	return stringNewInsertedUserID, nil
 }
 
-// // Search for users by username or nick
+// Search for users by username or nick
 func (repository UsersRepository) SearchUsers(usernameOrNickQuery string) ([]entities.User, error) {
 	filter := bson.M{
 		"$or": []bson.M{
@@ -62,7 +63,7 @@ func (repository UsersRepository) SearchUsers(usernameOrNickQuery string) ([]ent
 
 	result, err := repository.collection.Find(context.Background(), filter)
 	if err != nil {
-		fmt.Errorf("Error on search users: %s", err)
+		return []entities.User{}, fmt.Errorf("Error on SearchUsers: %s", err)
 	}
 
 	var users []entities.User
@@ -75,96 +76,101 @@ func (repository UsersRepository) SearchUsers(usernameOrNickQuery string) ([]ent
 	return users, nil
 }
 
-// func (u UsersRepository) SearchUser(requestID uint64) (entities.User, error) {
-// 	rows, err := u.db.Query(
-// 		"select id, username, nick, email, createdAt from users where id=?", requestID,
-// 	)
-// 	if err != nil {
-// 		return entities.User{}, err
-// 	}
-// 	defer rows.Close()
+func (repository UsersRepository) SearchUser(requestID uint64) (entities.User, error) {
+	filter := bson.M{
+		"_id": requestID,
+	}
 
-// 	var user entities.User
-// 	for rows.Next() {
-// 		if err := rows.Scan(
-// 			&user.ID,
-// 			&user.Username,
-// 			&user.Nick,
-// 			&user.Email,
-// 			&user.CreatedAt,
-// 		); err != nil {
-// 			return entities.User{}, err
-// 		}
-// 	}
+	var user entities.User
 
-// 	return user, nil
-// }
+	result := repository.collection.FindOne(context.Background(), filter)
 
-// func (u UsersRepository) UpdateUser(ID uint64, user entities.User) error {
-// 	statement, err := u.db.Prepare(
-// 		"update users set username=?, nick=?, email=? where id=?",
-// 	)
-// 	if err != nil {
-// 		return err
-// 	}
-// 	defer statement.Close()
+	if err := result.Decode(&user); err != nil {
+		return entities.User{}, fmt.Errorf("Error on decode SearchUser: %s", err)
+	}
 
-// 	if _, err := statement.Exec(
-// 		user.Username,
-// 		user.Nick,
-// 		user.Email,
-// 		ID,
-// 	); err != nil {
-// 		return err
-// 	}
+	return user, nil
+}
 
-// 	return nil
-// }
+func (repository UsersRepository) SearchUserByEmail(email string) (entities.User, error) {
+	filter := bson.M{
+		"email": email,
+	}
 
-// func (u UsersRepository) DeleteUser(ID uint64) error {
-// 	statement, err := u.db.Prepare("delete from users where id=?")
-// 	if err != nil {
-// 		return err
-// 	}
+	var user entities.User
 
-// 	if _, err := statement.Exec(ID); err != nil {
-// 		return err
-// 	}
+	result := repository.collection.FindOne(context.Background(), filter)
 
-// 	return nil
-// }
+	if err := result.Decode(&user); err != nil {
+		return entities.User{}, fmt.Errorf("Error on FindOne to SearchUserByEmail: %s", err)
+	}
 
-// func (u UsersRepository) SearchUserByEmail(email string) (entities.User, error) {
-// 	row, err := u.db.Query("select id, password from users where email=?", email)
-// 	if err != nil {
-// 		return entities.User{}, err
-// 	}
-// 	defer row.Close()
+	return user, nil
+}
 
-// 	var user entities.User
+func (repository UsersRepository) UpdateUser(ID uint64, user entities.User) (uint64, error) {
+	filter := bson.M{
+		"_id": ID,
+	}
 
-// 	for row.Next() {
-// 		if err := row.Scan(&user.ID, &user.Password); err != nil {
-// 			return entities.User{}, err
-// 		}
-// 	}
+	updateOptions := bson.M{
+		"$set": bson.M{
+			"nick":      user.Nick,
+			"username":  user.Username,
+			"email":     user.Email,
+			"updatedAt": time.Now(),
+		},
+	}
 
-// 	return user, nil
-// }
+	result, err := repository.collection.UpdateOne(context.Background(), filter, updateOptions)
+	if err != nil {
+		return 0, fmt.Errorf("Error on UpdateOne: %s", err)
+	}
 
-// func (u UsersRepository) Follow(followedID, followerID uint64) error {
-// 	statement, err := u.db.Prepare("insert ignore into followers (user_id, follower_id) values (?, ?)")
-// 	if err != nil {
-// 		return err
-// 	}
-// 	defer statement.Close()
+	modifiedCount := uint64(result.ModifiedCount)
 
-// 	if _, err := statement.Exec(followedID, followerID); err != nil {
-// 		return err
-// 	}
+	return modifiedCount, nil
+}
 
-// 	return nil
-// }
+func (repository UsersRepository) DeleteUser(ID uint64) (uint64, error) {
+	filter := bson.M{
+		"_id": ID,
+	}
+
+	updateOptions := bson.M{
+		"$set": bson.M{
+			"deletedAt": time.Now(),
+		},
+	}
+
+	result, err := repository.collection.UpdateOne(context.Background(), filter, updateOptions)
+	if err != nil {
+		return 0, fmt.Errorf("Error on UpdateOne to DeleteUser: %s", err)
+	}
+
+	modifiedCount := uint64(result.ModifiedCount)
+
+	return modifiedCount, nil
+}
+
+func (repository UsersRepository) Follow(followedID, followerID uint64) error {
+	filter := bson.M{
+		"_id": followedID,
+	}
+
+	update := bson.M{
+		"$push": bson.M{
+			"followers": followerID,
+		},
+	}
+
+	_, err := repository.collection.UpdateOne(context.Background(), filter, update)
+	if err != nil {
+		return fmt.Errorf("Error on UpdateOne to Follow: %s", err)
+	}
+
+	return nil
+}
 
 // func (u UsersRepository) UnFollow(followedID, followerID uint64) error {
 // 	statement, err := u.db.Prepare("delete from followers where user_id = ? and follower_id = ?")

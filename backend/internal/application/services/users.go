@@ -6,18 +6,18 @@ import (
 )
 
 type UsersService interface {
-	CreateUser(user entities.User) (uint64, error)
+	CreateUser(user entities.User) (string, error)
 	SearchUsers(usernameOrNickQuery string) ([]entities.User, error)
 	SearchUser(requestID uint64) (entities.User, error)
-	UpdateUser(ID uint64, user entities.User) error
-	DeleteUser(ID uint64) error
+	UpdateUser(ID uint64, user entities.User) (uint64, error)
+	DeleteUser(ID uint64) (uint64, error)
 	SearchUserByEmail(email string) (entities.User, error)
 	Follow(followedID, followerID uint64) error
-	UnFollow(followedID, followerID uint64) error
-	SearchFollowersOfAnUser(userID uint64) ([]entities.User, error)
-	SearchWhoAnUserFollow(userID uint64) ([]entities.User, error)
-	SearchUserPassword(userID uint64) (string, error)
-	UpdateUserPassword(requestUserId uint64, hashedNewPasswordStringed string) error
+	// UnFollow(followedID, followerID uint64) error
+	// SearchFollowersOfAnUser(userID uint64) ([]entities.User, error)
+	// SearchWhoAnUserFollow(userID uint64) ([]entities.User, error)
+	// SearchUserPassword(userID uint64) (string, error)
+	// UpdateUserPassword(requestUserId uint64, hashedNewPasswordStringed string) error
 }
 
 type usersService struct {
@@ -30,10 +30,10 @@ func NewUsersServices(userRepository repositories.UsersRepository) *usersService
 	}
 }
 
-func (service *usersService) CreateUser(user entities.User) (uint64, error) {
+func (service *usersService) CreateUser(user entities.User) (string, error) {
 	createdUserId, err := service.usersRepository.CreateUser(user)
 	if err != nil {
-		return 0, err
+		return "0", err
 	}
 	return createdUserId, nil
 }
@@ -57,22 +57,22 @@ func (service *usersService) SearchUser(requestID uint64) (entities.User, error)
 	return user, nil
 }
 
-func (service *usersService) UpdateUser(ID uint64, user entities.User) error {
-	err := service.usersRepository.UpdateUser(ID, user)
+func (service *usersService) UpdateUser(ID uint64, user entities.User) (uint64, error) {
+	modifiedCount, err := service.usersRepository.UpdateUser(ID, user)
 	if err != nil {
-		return err
+		return modifiedCount, err
 	}
 
-	return nil
+	return modifiedCount, err
 }
 
-func (service *usersService) DeleteUser(ID uint64) error {
-	err := service.usersRepository.DeleteUser(ID)
+func (service *usersService) DeleteUser(ID uint64) (uint64, error) {
+	deletedUserID, err := service.usersRepository.DeleteUser(ID)
 	if err != nil {
-		return err
+		return 0, err
 	}
 
-	return nil
+	return deletedUserID, nil
 }
 
 func (service *usersService) SearchUserByEmail(email string) (entities.User, error) {
@@ -93,47 +93,47 @@ func (service *usersService) Follow(followedID, followerID uint64) error {
 	return nil
 }
 
-func (service *usersService) UnFollow(followedID, followerID uint64) error {
-	err := service.usersRepository.UnFollow(followedID, followerID)
-	if err != nil {
-		return err
-	}
+// func (service *usersService) UnFollow(followedID, followerID uint64) error {
+// 	err := service.usersRepository.UnFollow(followedID, followerID)
+// 	if err != nil {
+// 		return err
+// 	}
 
-	return nil
-}
+// 	return nil
+// }
 
-func (service *usersService) SearchFollowersOfAnUser(userID uint64) ([]entities.User, error) {
-	followers, err := service.usersRepository.SearchFollowersOfAnUser(userID)
-	if err != nil {
-		return []entities.User{}, err
-	}
+// func (service *usersService) SearchFollowersOfAnUser(userID uint64) ([]entities.User, error) {
+// 	followers, err := service.usersRepository.SearchFollowersOfAnUser(userID)
+// 	if err != nil {
+// 		return []entities.User{}, err
+// 	}
 
-	return followers, nil
-}
+// 	return followers, nil
+// }
 
-func (service *usersService) SearchWhoAnUserFollow(userID uint64) ([]entities.User, error) {
-	followedBy, err := service.usersRepository.SearchWhoAnUserFollow(userID)
-	if err != nil {
-		return []entities.User{}, err
-	}
+// func (service *usersService) SearchWhoAnUserFollow(userID uint64) ([]entities.User, error) {
+// 	followedBy, err := service.usersRepository.SearchWhoAnUserFollow(userID)
+// 	if err != nil {
+// 		return []entities.User{}, err
+// 	}
 
-	return followedBy, nil
-}
+// 	return followedBy, nil
+// }
 
-func (service *usersService) SearchUserPassword(userID uint64) (string, error) {
-	password, err := service.usersRepository.SearchUserPassword(userID)
-	if err != nil {
-		return "", err
-	}
+// func (service *usersService) SearchUserPassword(userID uint64) (string, error) {
+// 	password, err := service.usersRepository.SearchUserPassword(userID)
+// 	if err != nil {
+// 		return "", err
+// 	}
 
-	return password, nil
-}
+// 	return password, nil
+// }
 
-func (service *usersService) UpdateUserPassword(requestUserId uint64, hashedNewPasswordStringed string) error {
-	err := service.usersRepository.UpdateUserPassword(requestUserId, hashedNewPasswordStringed)
-	if err != nil {
-		return err
-	}
+// func (service *usersService) UpdateUserPassword(requestUserId uint64, hashedNewPasswordStringed string) error {
+// 	err := service.usersRepository.UpdateUserPassword(requestUserId, hashedNewPasswordStringed)
+// 	if err != nil {
+// 		return err
+// 	}
 
-	return nil
-}
+// 	return nil
+// }
