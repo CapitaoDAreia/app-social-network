@@ -7,8 +7,8 @@ import (
 
 type PostServices interface {
 	CreatePost(post entities.Post) (string, error)
-	// SearchPost(postID uint64) (entities.Post, error)
-	// SearchPosts(tokenUserID uint64) ([]entities.Post, error)
+	SearchPost(postID string) (entities.Post, error)
+	SearchPosts(tokenUserID string) ([]entities.Post, error)
 	// UpdatePost(postRequestID uint64, updatedPost entities.Post) error
 	// DeletePost(postRequestID uint64) error
 	// SearchUserPosts(requestUserId uint64) ([]entities.Post, error)
@@ -33,23 +33,23 @@ func (service *postServices) CreatePost(post entities.Post) (string, error) {
 	return ID, nil
 }
 
-// func (service *postServices) SearchPost(postID uint64) (entities.Post, error) {
-// 	post, err := service.postsRepository.SearchPost(postID)
-// 	if err != nil {
-// 		return entities.Post{}, err
-// 	}
+func (service *postServices) SearchPost(postID string) (entities.Post, error) {
+	post, err := service.postsRepository.SearchPost(postID)
+	if err != nil {
+		return entities.Post{}, err
+	}
 
-// 	return post, nil
-// }
+	return post, nil
+}
 
-// func (service *postServices) SearchPosts(tokenUserID uint64) ([]entities.Post, error) {
-// 	posts, err := service.postsRepository.SearchPosts(tokenUserID)
-// 	if err != nil {
-// 		return []entities.Post{}, err
-// 	}
+func (service *postServices) SearchPosts(tokenUserID string) ([]entities.Post, error) {
+	posts, err := service.postsRepository.SearchPosts(tokenUserID)
+	if err != nil {
+		return []entities.Post{}, err
+	}
 
-// 	return posts, nil
-// }
+	return posts, nil
+}
 
 // func (service *postServices) UpdatePost(postRequestID uint64, updatedPost entities.Post) error {
 // 	err := service.postsRepository.UpdatePost(postRequestID, updatedPost)

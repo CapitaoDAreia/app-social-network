@@ -14,17 +14,21 @@ import (
 )
 
 type PostsRepository struct {
-	collection *mongo.Collection
+	postsCollection *mongo.Collection
+	usersCollection *mongo.Collection
 }
 
 func NewPostsRepository(db *mongo.Database) *PostsRepository {
-	collection := db.Collection(database.POSTS_COLLECTION)
+	postsCollection := db.Collection(database.POSTS_COLLECTION)
+	usersCollection := db.Collection(database.USERS_COLLECTION)
 
 	return &PostsRepository{
-		collection: collection,
+		postsCollection: postsCollection,
+		usersCollection: usersCollection,
 	}
 }
 
+// Register a post in the database
 func (repository PostsRepository) CreatePost(post entities.Post) (string, error) {
 
 	newPost := models.Post{
@@ -36,81 +40,73 @@ func (repository PostsRepository) CreatePost(post entities.Post) (string, error)
 		CreatedAt:  time.Now(),
 	}
 
-	result, err := repository.collection.InsertOne(context.Background(), newPost)
+	postsResult, err := repository.postsCollection.InsertOne(context.Background(), newPost)
 	if err != nil {
-		return "0", fmt.Errorf("Error on insert a new post: %s", err)
+		return "0", fmt.Errorf("Error on insert a new post into posts collection: %s", err)
 	}
 
-	stringNewInsertedPostID := result.InsertedID.(primitive.ObjectID).Hex()
+	stringNewInsertedPostID := postsResult.InsertedID.(primitive.ObjectID).Hex()
+
+	primitiveAuthorID, err := primitive.ObjectIDFromHex(newPost.AuthorID)
+
+	updateAuthorFilter := bson.M{
+		"_id": primitiveAuthorID,
+	}
+
+	updateAuthorCriteria := bson.M{
+		"$addToSet": bson.M{
+			"posts": stringNewInsertedPostID,
+		},
+	}
+
+	_, err = repository.usersCollection.UpdateOne(context.Background(), updateAuthorFilter, updateAuthorCriteria)
+	if err != nil {
+		return "0", fmt.Errorf("Post was created but an error was occur on insert a new post into user document: %s", err)
+	}
 
 	return stringNewInsertedPostID, nil
 }
 
-// func (p PostsRepository) SearchPost(postID uint64) (entities.Post, error) {
-// 	rows, err := p.db.Query(`
-// 		 select p.*, u.nick from
-// 		 posts p inner join users u
-// 		 on u.id = p.authorId where p.id = ?
-// 	`, postID)
-// 	if err != nil {
-// 		return entities.Post{}, err
-// 	}
-// 	defer rows.Close()
+// Search for a post in the database based on a post ID
+func (repository PostsRepository) SearchPost(postID string) (entities.Post, error) {
 
-// 	var post entities.Post
+	primitivePostID, _ := primitive.ObjectIDFromHex(postID)
 
-// 	if rows.Next() {
-// 		if err := rows.Scan(
-// 			&post.ID,
-// 			&post.Title,
-// 			&post.Content,
-// 			&post.AuthorID,
-// 			&post.Likes,
-// 			&post.CreatedAt,
-// 			&post.AuthorNick,
-// 		); err != nil {
-// 			return entities.Post{}, err
-// 		}
-// 	}
+	filter := bson.M{
+		"_id": primitivePostID,
+	}
 
-// 	return post, nil
-// }
+	var post entities.Post
 
-// func (p PostsRepository) SearchPosts(tokenUserID uint64) ([]entities.Post, error) {
-// 	rows, err := p.db.Query(`
-// 		select distinct p.*, u.nick from posts p
-// 		inner join users u on u.id = p.authorId
-// 		inner join followers s on p.authorId = s.user_id
-// 		where u.id = ? or s.follower_id = ?
-// 		order by 1 desc`, tokenUserID, tokenUserID)
-// 	if err != nil {
-// 		return []entities.Post{}, err
-// 	}
-// 	defer rows.Close()
+	postsResult := repository.postsCollection.FindOne(context.Background(), filter)
 
-// 	var posts []entities.Post
+	if err := postsResult.Decode(&post); err != nil {
+		return entities.Post{}, fmt.Errorf("Error on FindOne to SearchPost: %s", err)
+	}
 
-// 	for rows.Next() {
+	return post, nil
+}
 
-// 		var post entities.Post
+// Search for posts in the database based on an user ID
+func (repository PostsRepository) SearchPosts(tokenUserID string) ([]entities.Post, error) {
 
-// 		if err := rows.Scan(
-// 			&post.ID,
-// 			&post.Title,
-// 			&post.Content,
-// 			&post.AuthorID,
-// 			&post.Likes,
-// 			&post.CreatedAt,
-// 			&post.AuthorNick,
-// 		); err != nil {
-// 			return []entities.Post{}, err
-// 		}
+	filter := bson.M{
+		"authorid": tokenUserID,
+	}
 
-// 		posts = append(posts, post)
-// 	}
+	postsResult, err := repository.postsCollection.Find(context.Background(), filter)
+	if err != nil {
+		return []entities.Post{}, fmt.Errorf("Error on Find to SearchPosts")
+	}
 
-// 	return posts, nil
-// }
+	var posts []entities.Post
+
+	if err := postsResult.All(context.Background(), &posts); err != nil {
+		return []entities.Post{}, err
+	}
+
+	return posts, nil
+}
 
 // func (p PostsRepository) UpdatePost(postRequestID uint64, updatedPost entities.Post) error {
 // 	statement, err := p.db.Prepare(`update posts set title = ?, content = ? where id = ?`)
@@ -190,7 +186,7 @@ func (repository PostsRepository) LikePost(postID, tokenUserID string) error {
 		},
 	}
 
-	_, err := repository.collection.UpdateOne(context.Background(), filter, update)
+	_, err := repository.postsCollection.UpdateOne(context.Background(), filter, update)
 	if err != nil {
 		return fmt.Errorf("Error on UpdateOne to LikePost: %s", err)
 	}

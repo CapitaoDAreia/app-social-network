@@ -91,40 +91,37 @@ func (controller *PostsController) CreatePost(w http.ResponseWriter, r *http.Req
 // 	responses.FormatResponseToJSON(w, http.StatusNoContent, nil)
 // }
 
-// // --
-// func (controller *PostsController) GetPost(w http.ResponseWriter, r *http.Request) {
-// 	params := mux.Vars(r)
-// 	postID, err := strconv.ParseUint(params["postId"], 10, 64)
-// 	if err != nil {
-// 		responses.FormatResponseToCustomError(w, http.StatusBadRequest, err)
-// 		return
-// 	}
+// --
+func (controller *PostsController) GetPost(w http.ResponseWriter, r *http.Request) {
+	parameters := mux.Vars(r)
 
-// 	post, err := controller.postServices.SearchPost(postID)
-// 	if err != nil {
-// 		responses.FormatResponseToCustomError(w, 500, err)
-// 		return
-// 	}
+	postID := parameters["postId"]
 
-// 	responses.FormatResponseToJSON(w, 200, post)
-// }
+	post, err := controller.postServices.SearchPost(postID)
+	if err != nil {
+		responses.FormatResponseToCustomError(w, 500, err)
+		return
+	}
 
-// // --
-// func (controller *PostsController) GetPosts(w http.ResponseWriter, r *http.Request) {
-// 	tokenUserID, err := auth.ExtractUserID(r)
-// 	if err != nil {
-// 		responses.FormatResponseToCustomError(w, http.StatusUnauthorized, err)
-// 		return
-// 	}
+	responses.FormatResponseToJSON(w, 200, post)
+}
 
-// 	posts, err := controller.postServices.SearchPosts(tokenUserID)
-// 	if err != nil {
-// 		responses.FormatResponseToCustomError(w, 500, err)
-// 		return
-// 	}
+// --
+func (controller *PostsController) GetPosts(w http.ResponseWriter, r *http.Request) {
+	tokenUserID, err := auth.ExtractUserID(r)
+	if err != nil {
+		responses.FormatResponseToCustomError(w, http.StatusUnauthorized, err)
+		return
+	}
 
-// 	responses.FormatResponseToJSON(w, 200, posts)
-// }
+	posts, err := controller.postServices.SearchPosts(tokenUserID)
+	if err != nil {
+		responses.FormatResponseToCustomError(w, 500, err)
+		return
+	}
+
+	responses.FormatResponseToJSON(w, 200, posts)
+}
 
 // // --
 // func (controller *PostsController) GetUserPosts(w http.ResponseWriter, r *http.Request) {

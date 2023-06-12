@@ -22,18 +22,18 @@ func ConfigPostsRoutes(db *mongo.Database) []Route {
 			Controller: controllers.CreatePost,
 			NeedAuth:   true,
 		},
-		// 		{
-		// 			URI:        "/posts",
-		// 			Method:     http.MethodGet,
-		// 			Controller: controllers.GetPosts,
-		// 			NeedAuth:   true,
-		// 		},
-		// 		{
-		// 			URI:        "/posts/{postId}",
-		// 			Method:     http.MethodGet,
-		// 			Controller: controllers.GetPost,
-		// 			NeedAuth:   true,
-		// 		},
+		{
+			URI:        "/posts",
+			Method:     http.MethodGet,
+			Controller: controllers.GetPosts,
+			NeedAuth:   true,
+		},
+		{
+			URI:        "/posts/{postId}",
+			Method:     http.MethodGet,
+			Controller: controllers.GetPost,
+			NeedAuth:   true,
+		},
 		// 		{
 		// 			URI:        "/posts/{postId}",
 		// 			Method:     http.MethodPut,
