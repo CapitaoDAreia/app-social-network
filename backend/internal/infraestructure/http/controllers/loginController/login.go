@@ -6,7 +6,6 @@ import (
 	"backend/internal/infraestructure/http/auth"
 	"backend/internal/infraestructure/http/responses"
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"net/http"
 )
@@ -38,9 +37,6 @@ func (controller *LoginController) Login(w http.ResponseWriter, r *http.Request)
 		responses.FormatResponseToCustomError(w, 500, err)
 		return
 	}
-
-	fmt.Println(foundedUser.ID)
-	fmt.Println(foundedUser)
 
 	if err := auth.VerifyPassword(user.Password, foundedUser.Password); err != nil {
 		responses.FormatResponseToCustomError(w, 401, err)

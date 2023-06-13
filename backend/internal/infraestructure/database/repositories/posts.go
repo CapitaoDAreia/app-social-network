@@ -108,70 +108,93 @@ func (repository PostsRepository) SearchPosts(tokenUserID string) ([]entities.Po
 	return posts, nil
 }
 
-// func (p PostsRepository) UpdatePost(postRequestID uint64, updatedPost entities.Post) error {
-// 	statement, err := p.db.Prepare(`update posts set title = ?, content = ? where id = ?`)
-// 	if err != nil {
-// 		return err
-// 	}
-// 	defer statement.Close()
+func (repository PostsRepository) UpdatePost(postRequestID string, updatedPost entities.Post) (uint64, error) {
 
-// 	if _, err := statement.Exec(
-// 		updatedPost.Title,
-// 		updatedPost.Content,
-// 		postRequestID,
-// 	); err != nil {
-// 		return err
-// 	}
+	postRequestPrimitiveID, _ := primitive.ObjectIDFromHex(postRequestID)
 
-// 	return nil
-// }
+	filter := bson.M{
+		"_id": postRequestPrimitiveID,
+	}
 
-// func (p PostsRepository) DeletePost(postRequestID uint64) error {
-// 	statement, err := p.db.Prepare(`delete from posts where id = ?`)
-// 	if err != nil {
-// 		return err
-// 	}
-// 	defer statement.Close()
+	update := bson.M{
+		"$set": bson.M{
+			"title":     updatedPost.Title,
+			"content":   updatedPost.Content,
+			"updatedAt": time.Now(),
+		},
+	}
 
-// 	if _, err := statement.Exec(postRequestID); err != nil {
-// 		return err
-// 	}
+	result, err := repository.postsCollection.UpdateOne(context.Background(), filter, update)
+	if err != nil {
+		return 0, fmt.Errorf("Error on UpdateOne to UpdatePost: %s", err)
+	}
 
-// 	return nil
-// }
+	modifiedCount := uint64(result.ModifiedCount)
 
-// func (p PostsRepository) SearchUserPosts(requestUserId uint64) ([]entities.Post, error) {
-// 	rows, err := p.db.Query(`
-// 		select p.*, u.nick from posts p
-// 		join users u on u.id = p.authorId
-// 		where p.authorId = ?
-// 	`, requestUserId)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	defer rows.Close()
+	return modifiedCount, nil
+}
 
-// 	var posts []entities.Post
+func (repository PostsRepository) DeletePost(postRequestID string) (uint64, error) {
 
-// 	for rows.Next() {
-// 		var post entities.Post
-// 		if err := rows.Scan(
-// 			&post.ID,
-// 			&post.Title,
-// 			&post.Content,
-// 			&post.AuthorID,
-// 			&post.Likes,
-// 			&post.CreatedAt,
-// 			&post.AuthorNick,
-// 		); err != nil {
-// 			return nil, err
-// 		}
+	postRequestPrimitiveID, _ := primitive.ObjectIDFromHex(postRequestID)
 
-// 		posts = append(posts, post)
-// 	}
+	postsFilter := bson.M{
+		"_id": postRequestPrimitiveID,
+	}
 
-// 	return posts, nil
-// }
+	var post entities.Post
+
+	searchPostResult := repository.postsCollection.FindOne(context.Background(), postsFilter)
+	if err := searchPostResult.Decode(&post); err != nil {
+		return 0, fmt.Errorf("Error on Decode to DeletePost: %s", err)
+	}
+
+	userPrimitiveID, _ := primitive.ObjectIDFromHex(post.AuthorID)
+
+	usersFilter := bson.M{
+		"_id": userPrimitiveID,
+	}
+
+	usersUpdateCriteria := bson.M{
+		"$pull": bson.M{
+			"posts": postRequestID,
+		},
+	}
+
+	_, err := repository.usersCollection.UpdateOne(context.Background(), usersFilter, usersUpdateCriteria)
+	if err != nil {
+		return 0, fmt.Errorf("Error on UpdateMany to DeletePost: %s", err)
+	}
+
+	postDeleteResult, err := repository.postsCollection.DeleteOne(context.Background(), postsFilter)
+	if err != nil {
+		return 0, fmt.Errorf("Error on DeleteOne to DeletePost: %s", err)
+	}
+
+	deletedCountInPostsCollection := uint64(postDeleteResult.DeletedCount)
+
+	return deletedCountInPostsCollection, nil
+}
+
+func (repository PostsRepository) SearchUserPosts(requestUserId string) ([]entities.Post, error) {
+
+	filter := bson.M{
+		"authorid": requestUserId,
+	}
+
+	var posts []entities.Post
+
+	result, err := repository.postsCollection.Find(context.Background(), filter)
+	if err != nil {
+		return []entities.Post{}, fmt.Errorf("Error on Find to SearchUserPosts: %s", err)
+	}
+
+	if err := result.All(context.Background(), &posts); err != nil {
+		return []entities.Post{}, err
+	}
+
+	return posts, nil
+}
 
 func (repository PostsRepository) LikePost(postID, tokenUserID string) error {
 	primitiveObjId, _ := primitive.ObjectIDFromHex(postID)
@@ -194,22 +217,23 @@ func (repository PostsRepository) LikePost(postID, tokenUserID string) error {
 	return nil
 }
 
-// func (p PostsRepository) UnlikePost(postID uint64) error {
-// 	statement, err := p.db.Prepare(`
-// 		UPDATE posts SET likes =
-// 		CASE
-// 			WHEN likes > 0 THEN likes -1
-// 		ELSE 0 END
-// 		WHERE id = ?
-// 	`)
-// 	if err != nil {
-// 		return err
-// 	}
-// 	defer statement.Close()
+func (repository PostsRepository) UnlikePost(postID, tokenUserID string) error {
+	primitiveObjId, _ := primitive.ObjectIDFromHex(postID)
 
-// 	if _, err := statement.Exec(postID); err != nil {
-// 		return err
-// 	}
+	filter := bson.M{
+		"_id": primitiveObjId,
+	}
 
-// 	return nil
-// }
+	update := bson.M{
+		"$pull": bson.M{
+			"likes": tokenUserID,
+		},
+	}
+
+	_, err := repository.postsCollection.UpdateOne(context.Background(), filter, update)
+	if err != nil {
+		return fmt.Errorf("Error on UpdateOne to UnlikePost: %s", err)
+	}
+
+	return nil
+}

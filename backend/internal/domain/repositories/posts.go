@@ -6,9 +6,9 @@ type PostsRepository interface {
 	CreatePost(post entities.Post) (string, error)
 	SearchPost(postID string) (entities.Post, error)
 	SearchPosts(tokenUserID string) ([]entities.Post, error)
-	// UpdatePost(postRequestID uint64, updatedPost entities.Post)
-	// DeletePost(postRequestID uint64) error
-	// SearchUserPosts(requestUserId uint64) ([]entities.Post, error)
+	UpdatePost(postRequestID string, updatedPost entities.Post) (uint64, error)
+	DeletePost(postRequestID string) (uint64, error)
+	SearchUserPosts(requestUserId string) ([]entities.Post, error)
 	LikePost(postID, tokenUserID string) error
-	// UnlikePost(postID uint64) error
+	UnlikePost(postID, tokenUserID string) error
 }
