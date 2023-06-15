@@ -383,21 +383,21 @@ func TestSearchFollowersOfAnUser(t *testing.T) {
 		name                                         string
 		userId                                       string
 		expectedSearchFollowersOfAnUserError         error
-		expectedSearchFollowersOfAnUserReturn        []entities.User
+		expectedSearchFollowersOfAnUserReturn        []string
 		expectedSearchFollowersOfAnUserNumberOfCalls int
 	}{
 		{
 			name:                                  "Success on SearchFollowersOfAnUser",
 			userId:                                "1",
 			expectedSearchFollowersOfAnUserError:  nil,
-			expectedSearchFollowersOfAnUserReturn: []entities.User{User},
+			expectedSearchFollowersOfAnUserReturn: []string{User.ID},
 			expectedSearchFollowersOfAnUserNumberOfCalls: 1,
 		},
 		{
 			name:                                  "Error on SearchFollowersOfAnUser",
 			userId:                                "1",
 			expectedSearchFollowersOfAnUserError:  assert.AnError,
-			expectedSearchFollowersOfAnUserReturn: []entities.User{},
+			expectedSearchFollowersOfAnUserReturn: []string{},
 			expectedSearchFollowersOfAnUserNumberOfCalls: 1,
 		},
 	}
@@ -423,21 +423,21 @@ func TestSearchWhoAnUserFollow(t *testing.T) {
 		name                                       string
 		userId                                     string
 		expectedSearchWhoAnUserFollowError         error
-		expectedSearchWhoAnUserFollowReturn        []entities.User
+		expectedSearchWhoAnUserFollowReturn        []string
 		expectedSearchWhoAnUserFollowNumberOfCalls int
 	}{
 		{
 			name:                                "Success on SearchWhoAnUserFollow",
 			userId:                              "1",
 			expectedSearchWhoAnUserFollowError:  nil,
-			expectedSearchWhoAnUserFollowReturn: []entities.User{User},
+			expectedSearchWhoAnUserFollowReturn: []string{User.ID},
 			expectedSearchWhoAnUserFollowNumberOfCalls: 1,
 		},
 		{
 			name:                                "Error on SearchWhoAnUserFollow",
 			userId:                              "1",
 			expectedSearchWhoAnUserFollowError:  assert.AnError,
-			expectedSearchWhoAnUserFollowReturn: []entities.User{},
+			expectedSearchWhoAnUserFollowReturn: []string{},
 			expectedSearchWhoAnUserFollowNumberOfCalls: 1,
 		},
 	}
