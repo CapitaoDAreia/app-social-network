@@ -8,6 +8,7 @@ import (
 	"backend/internal/infraestructure/http/responses"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"strings"
@@ -59,6 +60,11 @@ func (controller *UsersController) UpdateUser(w http.ResponseWriter, r *http.Req
 
 	requestID := parameters["userId"]
 
+	if requestID == "" {
+		responses.FormatResponseToCustomError(w, http.StatusBadRequest, fmt.Errorf("Give-me an user ID."))
+		return
+	}
+
 	tokenUserID, err := auth.ExtractUserID(r)
 	if err != nil {
 		responses.FormatResponseToCustomError(w, http.StatusUnauthorized, err)
@@ -101,6 +107,11 @@ func (controller *UsersController) GetUser(w http.ResponseWriter, r *http.Reques
 	parameters := mux.Vars(r)
 
 	requestID := parameters["userId"]
+
+	if requestID == "" {
+		responses.FormatResponseToCustomError(w, 400, fmt.Errorf("Give-me an user ID."))
+		return
+	}
 
 	user, err := controller.userService.SearchUser(requestID)
 	if err != nil {

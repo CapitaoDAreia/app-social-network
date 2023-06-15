@@ -111,7 +111,7 @@ func TestUpdateUser(t *testing.T) {
 		input                 string
 		urlId                 string
 		validToken            string
-		userId                uint64
+		userId                string
 		expectedStatusCode    int
 		expectedUpdatedReturn uint64
 		expectedUpdatedError  error
@@ -121,7 +121,7 @@ func TestUpdateUser(t *testing.T) {
 			input:                 `{"username":"updated", "nick":"testupdated", "email":"user1@email.com"}`,
 			urlId:                 "1",
 			validToken:            ValidToken,
-			userId:                1,
+			userId:                "1",
 			expectedStatusCode:    204,
 			expectedUpdatedReturn: 1,
 			expectedUpdatedError:  nil,
@@ -131,7 +131,7 @@ func TestUpdateUser(t *testing.T) {
 			input:                 `{"username":"updated", "nick":"testupdated", "email":"user1@email.com"}`,
 			urlId:                 "",
 			validToken:            ValidToken,
-			userId:                1,
+			userId:                "1",
 			expectedStatusCode:    400,
 			expectedUpdatedReturn: 1,
 			expectedUpdatedError:  assert.AnError,
@@ -141,7 +141,7 @@ func TestUpdateUser(t *testing.T) {
 			input:                 `{"username":"updated", "nick":"testupdated", "email":"user1@email.com"}`,
 			urlId:                 "1",
 			validToken:            ValidToken + "invalidate token",
-			userId:                1,
+			userId:                "1",
 			expectedStatusCode:    401,
 			expectedUpdatedReturn: 0,
 			expectedUpdatedError:  assert.AnError,
@@ -151,7 +151,7 @@ func TestUpdateUser(t *testing.T) {
 			input:                 `{"username":"updated", "nick":"testupdated", "email":"user1@email.com"}`,
 			urlId:                 "1",
 			validToken:            DiffToken,
-			userId:                1,
+			userId:                "1",
 			expectedStatusCode:    403,
 			expectedUpdatedReturn: 0,
 			expectedUpdatedError:  assert.AnError,
@@ -161,7 +161,7 @@ func TestUpdateUser(t *testing.T) {
 			input:                 "",
 			urlId:                 "1",
 			validToken:            ValidToken,
-			userId:                1,
+			userId:                "1",
 			expectedStatusCode:    400,
 			expectedUpdatedReturn: 1,
 			expectedUpdatedError:  assert.AnError,
@@ -171,7 +171,7 @@ func TestUpdateUser(t *testing.T) {
 			input:                 `{"usernameupdated", "nick":"testupdated", "email":"user1@email.com"}`,
 			urlId:                 "1",
 			validToken:            ValidToken,
-			userId:                1,
+			userId:                "1",
 			expectedStatusCode:    400,
 			expectedUpdatedReturn: 1,
 			expectedUpdatedError:  assert.AnError,
@@ -181,7 +181,7 @@ func TestUpdateUser(t *testing.T) {
 			input:                 `{"username":"updated", "nick":"testupdated", "email":"user1@email.com"}`,
 			urlId:                 "1",
 			validToken:            ValidToken,
-			userId:                1,
+			userId:                "1",
 			expectedStatusCode:    500,
 			expectedUpdatedReturn: 1,
 			expectedUpdatedError:  assert.AnError,
@@ -191,7 +191,7 @@ func TestUpdateUser(t *testing.T) {
 			input:                 `{"invalidField":"updated", "nick":"testupdated", "email":"user1@email.com"}`,
 			urlId:                 "1",
 			validToken:            ValidToken,
-			userId:                1,
+			userId:                "1",
 			expectedStatusCode:    400,
 			expectedUpdatedReturn: 1,
 			expectedUpdatedError:  assert.AnError,
@@ -201,7 +201,7 @@ func TestUpdateUser(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			serviceMock := mocks.NewUsersServiceMock()
-			serviceMock.On("UpdateUser", test.userId, mock.AnythingOfType("entities.User")).Return(test.expectedUpdatedError)
+			serviceMock.On("UpdateUser", test.userId, mock.AnythingOfType("entities.User")).Return(test.expectedUpdatedReturn, test.expectedUpdatedError)
 			usersController := NewUsersController(serviceMock)
 
 			req, _ := http.NewRequest("PUT", "/", strings.NewReader(test.input))
@@ -232,7 +232,7 @@ func TestGetUser(t *testing.T) {
 		name                     string
 		requestID                string
 		expectedStatusCode       int
-		input                    uint64
+		input                    string
 		expectedSearchUserReturn entities.User
 		expectedSearchUserError  error
 	}{
@@ -240,7 +240,7 @@ func TestGetUser(t *testing.T) {
 			name:                     "Success on GetUser",
 			requestID:                "1",
 			expectedStatusCode:       200,
-			input:                    1,
+			input:                    "1",
 			expectedSearchUserReturn: returnedUser,
 			expectedSearchUserError:  nil,
 		},
@@ -248,7 +248,7 @@ func TestGetUser(t *testing.T) {
 			name:                     "Error on GetUser",
 			requestID:                "1",
 			expectedStatusCode:       500,
-			input:                    1,
+			input:                    "1",
 			expectedSearchUserReturn: entities.User{},
 			expectedSearchUserError:  assert.AnError,
 		},
@@ -256,7 +256,7 @@ func TestGetUser(t *testing.T) {
 			name:                     "Error on GetUser, empty requestId",
 			requestID:                "",
 			expectedStatusCode:       400,
-			input:                    1,
+			input:                    "1",
 			expectedSearchUserReturn: entities.User{},
 			expectedSearchUserError:  assert.AnError,
 		},
