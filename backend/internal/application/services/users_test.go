@@ -503,21 +503,24 @@ func TestUpdateUserPassword(t *testing.T) {
 		name                                    string
 		requestUserId                           string
 		hashedNewPasswordStringed               string
-		expectedUpdateUserPasswordReturn        error
+		expectedUpdateUserPasswordError         error
+		expectedUpdateUserPasswordReturn        uint64
 		expectedUpdateUserPasswordNumberOfCalls int
 	}{
 		{
 			name:                                    "Success on UpdateUserPassword",
 			requestUserId:                           "1",
 			hashedNewPasswordStringed:               "",
-			expectedUpdateUserPasswordReturn:        nil,
+			expectedUpdateUserPasswordReturn:        1,
+			expectedUpdateUserPasswordError:         nil,
 			expectedUpdateUserPasswordNumberOfCalls: 1,
 		},
 		{
 			name:                                    "Error on UpdateUserPassword",
 			requestUserId:                           "1",
 			hashedNewPasswordStringed:               "",
-			expectedUpdateUserPasswordReturn:        assert.AnError,
+			expectedUpdateUserPasswordReturn:        0,
+			expectedUpdateUserPasswordError:         assert.AnError,
 			expectedUpdateUserPasswordNumberOfCalls: 1,
 		},
 	}
@@ -525,7 +528,7 @@ func TestUpdateUserPassword(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			usersRepositoryMock := mocks.NewUsersRepositoryMock()
-			usersRepositoryMock.On("UpdateUserPassword", test.requestUserId, test.hashedNewPasswordStringed).Return(test.expectedUpdateUserPasswordReturn)
+			usersRepositoryMock.On("UpdateUserPassword", test.requestUserId, test.hashedNewPasswordStringed).Return(test.expectedUpdateUserPasswordReturn, test.expectedUpdateUserPasswordError)
 
 			services := NewUsersServices(usersRepositoryMock)
 
