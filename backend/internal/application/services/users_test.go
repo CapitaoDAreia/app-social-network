@@ -184,21 +184,24 @@ func TestUpdateUser(t *testing.T) {
 		name                            string
 		ID                              string
 		user                            entities.User
-		expectedUpdateUserReturn        error
+		expectedUpdateUserReturn        uint64
+		expectedUpdateUserError         error
 		expectedUpdateUserNumberOfCalls int
 	}{
 		{
 			name:                            "Success on UpdateUser",
 			ID:                              "1",
 			user:                            User,
-			expectedUpdateUserReturn:        nil,
+			expectedUpdateUserReturn:        1,
+			expectedUpdateUserError:         nil,
 			expectedUpdateUserNumberOfCalls: 1,
 		},
 		{
 			name:                            "Error on UpdateUser",
 			ID:                              "1",
 			user:                            entities.User{},
-			expectedUpdateUserReturn:        assert.AnError,
+			expectedUpdateUserReturn:        0,
+			expectedUpdateUserError:         assert.AnError,
 			expectedUpdateUserNumberOfCalls: 1,
 		},
 	}
@@ -206,13 +209,14 @@ func TestUpdateUser(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			usersRepositoryMock := mocks.NewUsersRepositoryMock()
-			usersRepositoryMock.On("UpdateUser", test.ID, test.user).Return(test.expectedUpdateUserReturn)
+			usersRepositoryMock.On("UpdateUser", test.ID, test.user).Return(test.expectedUpdateUserReturn, test.expectedUpdateUserError)
 			services := NewUsersServices(usersRepositoryMock)
 
-			err, _ := services.UpdateUser(test.ID, test.user)
+			result, err := services.UpdateUser(test.ID, test.user)
 
 			usersRepositoryMock.AssertNumberOfCalls(t, "UpdateUser", test.expectedUpdateUserNumberOfCalls)
-			assert.Equal(t, test.expectedUpdateUserReturn, err)
+			assert.Equal(t, test.expectedUpdateUserReturn, result)
+			assert.Equal(t, test.expectedUpdateUserError, err)
 		})
 	}
 }
@@ -221,19 +225,22 @@ func TestDeleteUser(t *testing.T) {
 	tests := []struct {
 		name                            string
 		ID                              string
-		expectedDeleteUserReturn        error
+		expectedDeleteUserReturn        uint64
+		expectedDeleteUserError         error
 		expectedDeleteUserNumberOfCalls int
 	}{
 		{
 			name:                            "Success on DeleteUser",
 			ID:                              "1",
-			expectedDeleteUserReturn:        nil,
+			expectedDeleteUserReturn:        1,
+			expectedDeleteUserError:         nil,
 			expectedDeleteUserNumberOfCalls: 1,
 		},
 		{
 			name:                            "Error on DeleteUser",
 			ID:                              "1",
-			expectedDeleteUserReturn:        assert.AnError,
+			expectedDeleteUserReturn:        0,
+			expectedDeleteUserError:         assert.AnError,
 			expectedDeleteUserNumberOfCalls: 1,
 		},
 	}
@@ -241,13 +248,14 @@ func TestDeleteUser(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			usersRepositoryMock := mocks.NewUsersRepositoryMock()
-			usersRepositoryMock.On("DeleteUser", test.ID).Return(test.expectedDeleteUserReturn)
+			usersRepositoryMock.On("DeleteUser", test.ID).Return(test.expectedDeleteUserReturn, test.expectedDeleteUserError)
 			services := NewUsersServices(usersRepositoryMock)
 
-			err, _ := services.DeleteUser(test.ID)
+			result, err := services.DeleteUser(test.ID)
 
 			usersRepositoryMock.AssertNumberOfCalls(t, "DeleteUser", test.expectedDeleteUserNumberOfCalls)
-			assert.Equal(t, test.expectedDeleteUserReturn, err)
+			assert.Equal(t, test.expectedDeleteUserReturn, result)
+			assert.Equal(t, test.expectedDeleteUserError, err)
 		})
 	}
 }
