@@ -14,7 +14,12 @@ jobs:
     - name: runs_test
       uses: actions/checkout@v2
     - name: Test
-      run: cd backend && go test ./... && cd ..
+      run: cd backend && - go test ./... -coverpkg=./... -coverprofile=coverage.out
+    - name: Upload artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: coverage-report
+        path: coverage.out
 
   sonarcloud:
     name: SonarCloud
