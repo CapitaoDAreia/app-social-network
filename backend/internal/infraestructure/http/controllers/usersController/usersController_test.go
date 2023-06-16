@@ -341,81 +341,100 @@ func TestUpdateUserPassword(t *testing.T) {
 		name                     string
 		validToken               string
 		bodyReq                  string
-		userId                   uint64
+		userId                   string
 		searchUserPasswordReturn string
 		searchUserPasswordError  error
 		expectedUpdateUserError  error
+		expectedUpdateUserResult uint64
 		expectedStatusCode       int
 	}{
 		{
 			name:                     "Success on UpdateUserPassword",
 			validToken:               ValidToken,
 			bodyReq:                  `{"current":"123456", "new":"789"}`,
-			userId:                   1,
+			userId:                   "1",
 			searchUserPasswordReturn: Hashed,
 			searchUserPasswordError:  nil,
 			expectedUpdateUserError:  nil,
+			expectedUpdateUserResult: 1,
 			expectedStatusCode:       204,
 		},
 		{
 			name:                     "Error on UpdateUserPassword",
 			validToken:               ValidToken,
 			bodyReq:                  `{"current":"123456", "new":"789"}`,
-			userId:                   1,
+			userId:                   "1",
 			searchUserPasswordReturn: Hashed,
 			searchUserPasswordError:  nil,
 			expectedUpdateUserError:  assert.AnError,
+			expectedUpdateUserResult: 0,
 			expectedStatusCode:       500,
 		},
 		{
 			name:                     "Error on UpdateUserPassword, empty data",
 			validToken:               ValidToken,
 			bodyReq:                  `{"current":"", "new":""}`,
-			userId:                   1,
+			userId:                   "1",
 			searchUserPasswordReturn: Hashed,
 			searchUserPasswordError:  nil,
 			expectedUpdateUserError:  assert.AnError,
+			expectedUpdateUserResult: 0,
 			expectedStatusCode:       500,
 		},
 		{
 			name:                     "Error on UpdateUserPassword, empty data",
 			validToken:               ValidToken,
 			bodyReq:                  ``,
-			userId:                   1,
+			userId:                   "1",
 			searchUserPasswordReturn: Hashed,
 			searchUserPasswordError:  nil,
 			expectedUpdateUserError:  assert.AnError,
+			expectedUpdateUserResult: 0,
 			expectedStatusCode:       500,
 		},
 		{
 			name:                     "Error on UpdateUserPassword, broken json",
 			validToken:               ValidToken,
 			bodyReq:                  `{"current"", "new":"}`,
-			userId:                   1,
+			userId:                   "1",
 			searchUserPasswordReturn: Hashed,
 			searchUserPasswordError:  nil,
 			expectedUpdateUserError:  assert.AnError,
+			expectedUpdateUserResult: 0,
 			expectedStatusCode:       500,
 		},
 		{
 			name:                     "Error on UpdateUserPassword, incorrect userId",
 			validToken:               ValidToken,
 			bodyReq:                  `{"current":"123456", "new":"789"}`,
-			userId:                   1000,
+			userId:                   "1000",
 			searchUserPasswordReturn: Hashed,
 			searchUserPasswordError:  nil,
 			expectedUpdateUserError:  assert.AnError,
+			expectedUpdateUserResult: 0,
 			expectedStatusCode:       401,
 		},
 		{
 			name:                     "Error on UpdateUserPassword, invalid auth token",
 			validToken:               ValidToken + "invalidate",
 			bodyReq:                  `{"current":"123456", "new":"789"}`,
-			userId:                   1,
+			userId:                   "1",
 			searchUserPasswordReturn: Hashed,
 			searchUserPasswordError:  nil,
 			expectedUpdateUserError:  assert.AnError,
+			expectedUpdateUserResult: 0,
 			expectedStatusCode:       500,
+		},
+		{
+			name:                     "Error on UpdateUserPassword, empty userId",
+			validToken:               ValidToken,
+			bodyReq:                  `{"current":"123456", "new":"789"}`,
+			userId:                   "",
+			searchUserPasswordReturn: Hashed,
+			searchUserPasswordError:  nil,
+			expectedUpdateUserError:  nil,
+			expectedUpdateUserResult: 0,
+			expectedStatusCode:       400,
 		},
 	}
 
@@ -423,14 +442,14 @@ func TestUpdateUserPassword(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			servicesMock := mocks.NewUsersServiceMock()
 			servicesMock.On("SearchUserPassword", test.userId).Return(test.searchUserPasswordReturn, test.searchUserPasswordError)
-			servicesMock.On("UpdateUserPassword", mock.AnythingOfType("uint64"), mock.AnythingOfType("string")).Return(test.expectedUpdateUserError)
+			servicesMock.On("UpdateUserPassword", mock.AnythingOfType("string"), mock.AnythingOfType("string")).Return(test.expectedUpdateUserResult, test.expectedUpdateUserError)
 			usersController := NewUsersController(servicesMock)
 			req, _ := http.NewRequest("POST", "/", strings.NewReader(test.bodyReq))
 
 			req.Header.Add("Authorization", "Bearer "+test.validToken)
 
 			parameters := map[string]string{
-				"userId": fmt.Sprintf("%d", test.userId),
+				"userId": fmt.Sprintf("%s", test.userId),
 			}
 			req = mux.SetURLVars(req, parameters)
 
@@ -447,53 +466,59 @@ func TestUpdateUserPassword(t *testing.T) {
 func TestDeleteUser(t *testing.T) {
 
 	tests := []struct {
-		name                    string
-		expectedStatusCode      int
-		userId                  string
-		validToken              string
-		expectedDeleteUserError error
+		name                     string
+		expectedStatusCode       int
+		userId                   string
+		validToken               string
+		expectedDeleteUserError  error
+		expectedDeleteUserReturn uint64
 	}{
 		{
-			name:                    "Success on Delete",
-			expectedStatusCode:      204,
-			userId:                  "1",
-			validToken:              ValidToken,
-			expectedDeleteUserError: nil,
+			name:                     "Success on Delete",
+			expectedStatusCode:       204,
+			userId:                   "1",
+			validToken:               ValidToken,
+			expectedDeleteUserError:  nil,
+			expectedDeleteUserReturn: 1,
 		},
 		{
-			name:                    "Error on Delete",
-			expectedStatusCode:      500,
-			userId:                  "1",
-			validToken:              ValidToken,
-			expectedDeleteUserError: assert.AnError,
+			name:                     "Error on Delete",
+			expectedStatusCode:       500,
+			userId:                   "1",
+			validToken:               ValidToken,
+			expectedDeleteUserError:  assert.AnError,
+			expectedDeleteUserReturn: 0,
 		},
 		{
-			name:                    "Error on Delete, incorrect userId",
-			expectedStatusCode:      401,
-			userId:                  "122",
-			validToken:              ValidToken,
-			expectedDeleteUserError: nil,
+			name:                     "Error on Delete, incorrect userId",
+			expectedStatusCode:       401,
+			userId:                   "122",
+			validToken:               ValidToken,
+			expectedDeleteUserError:  nil,
+			expectedDeleteUserReturn: 0,
 		},
 		{
-			name:                    "Error on Delete, invalid authToken",
-			expectedStatusCode:      401,
-			userId:                  "1",
-			validToken:              ValidToken + "invalidate",
-			expectedDeleteUserError: nil,
+			name:                     "Error on Delete, invalid authToken",
+			expectedStatusCode:       401,
+			userId:                   "1",
+			validToken:               ValidToken + "invalidate",
+			expectedDeleteUserError:  nil,
+			expectedDeleteUserReturn: 0,
 		},
 		{
-			name:                    "Error on Delete, empty userId",
-			expectedStatusCode:      400,
-			userId:                  "",
-			validToken:              ValidToken,
-			expectedDeleteUserError: nil,
+			name:                     "Error on Delete, empty userId",
+			expectedStatusCode:       400,
+			userId:                   "",
+			validToken:               ValidToken,
+			expectedDeleteUserError:  nil,
+			expectedDeleteUserReturn: 0,
 		},
 	}
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			servicesMock := mocks.NewUsersServiceMock()
-			servicesMock.On("DeleteUser", mock.AnythingOfType("uint64")).Return(test.expectedDeleteUserError)
+			servicesMock.On("DeleteUser", mock.AnythingOfType("string")).Return(test.expectedDeleteUserReturn, test.expectedDeleteUserError)
 			usersController := NewUsersController(servicesMock)
 
 			req, _ := http.NewRequest("DELETE", "/users", nil)

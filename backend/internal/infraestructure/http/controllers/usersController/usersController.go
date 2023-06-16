@@ -140,6 +140,11 @@ func (controller *UsersController) UpdateUserPassword(w http.ResponseWriter, r *
 
 	requestUserId := parameters["userId"]
 
+	if requestUserId == "" {
+		responses.FormatResponseToCustomError(w, 400, fmt.Errorf("Give-me an user ID."))
+		return
+	}
+
 	tokenUserId, err := auth.ExtractUserID(r)
 	if err != nil {
 		responses.FormatResponseToCustomError(w, 500, err)
@@ -193,6 +198,11 @@ func (controller *UsersController) DeleteUser(w http.ResponseWriter, r *http.Req
 	parameters := mux.Vars(r)
 
 	requestID := parameters["userId"]
+
+	if requestID == "" {
+		responses.FormatResponseToCustomError(w, 400, fmt.Errorf("Give-me an user ID."))
+		return
+	}
 
 	tokenUserID, err := auth.ExtractUserID(r)
 	if err != nil {
