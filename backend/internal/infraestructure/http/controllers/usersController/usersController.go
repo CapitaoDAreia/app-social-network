@@ -236,6 +236,11 @@ func (controller *UsersController) FollowUser(w http.ResponseWriter, r *http.Req
 
 	followedID := parameters["userId"]
 
+	if followedID == "" {
+		responses.FormatResponseToCustomError(w, 400, fmt.Errorf("Give-me an user ID."))
+		return
+	}
+
 	if followedID == followerID {
 		responses.FormatResponseToCustomError(w, http.StatusForbidden, errors.New("Do you want to follow yourself? Pff! "))
 		return
@@ -260,6 +265,11 @@ func (controller *UsersController) UnFollowUser(w http.ResponseWriter, r *http.R
 
 	followedID := parameters["userId"]
 
+	if followedID == "" {
+		responses.FormatResponseToCustomError(w, 400, fmt.Errorf("Give-me an user ID."))
+		return
+	}
+
 	if followedID == followerID {
 		responses.FormatResponseToCustomError(w, http.StatusForbidden, errors.New("Do you want to follow yourself? Pff! "))
 		return
@@ -283,6 +293,11 @@ func (controller *UsersController) GetFollowersOfAnUser(w http.ResponseWriter, r
 
 	userID := parameters["userId"]
 
+	if userID == "" {
+		responses.FormatResponseToCustomError(w, 400, fmt.Errorf("Give-me an user ID."))
+		return
+	}
+
 	followers, err := controller.userService.SearchFollowersOfAnUser(userID)
 	if err != nil {
 		responses.FormatResponseToCustomError(w, 500, err)
@@ -297,6 +312,11 @@ func (controller *UsersController) GetWhoAnUserFollow(w http.ResponseWriter, r *
 	parameters := mux.Vars(r)
 
 	userID := parameters["userId"]
+
+	if userID == "" {
+		responses.FormatResponseToCustomError(w, 400, fmt.Errorf("Give-me an user ID."))
+		return
+	}
 
 	followers, err := controller.userService.SearchWhoAnUserFollow(userID)
 	if err != nil {

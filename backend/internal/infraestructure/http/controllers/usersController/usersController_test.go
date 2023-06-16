@@ -588,7 +588,7 @@ func TestFollowUser(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			servicesMock := mocks.NewUsersServiceMock()
-			servicesMock.On("Follow", mock.AnythingOfType("uint64"), mock.AnythingOfType("uint64")).Return(test.expectedFollowError)
+			servicesMock.On("Follow", mock.AnythingOfType("string"), mock.AnythingOfType("string")).Return(test.expectedFollowError)
 			usersController := NewUsersController(servicesMock)
 
 			req, _ := http.NewRequest("POST", "/users/1/follow", nil)
@@ -658,7 +658,7 @@ func TestUnFollowUser(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			servicesMock := mocks.NewUsersServiceMock()
-			servicesMock.On("UnFollow", mock.AnythingOfType("uint64"), mock.AnythingOfType("uint64")).Return(test.expectedUnFollowResult)
+			servicesMock.On("UnFollow", mock.AnythingOfType("string"), mock.AnythingOfType("string")).Return(test.expectedUnFollowResult)
 			usersController := NewUsersController(servicesMock)
 
 			req, _ := http.NewRequest("POST", "/users/{userId}/unfollow", nil)
@@ -684,35 +684,35 @@ func TestGetFollowersOfAnUser(t *testing.T) {
 		expectedStatusCode                 int
 		userId                             string
 		expectedGetFollowersOfAnUserError  error
-		expectedGetFollowersOfAnUserResult []entities.User
+		expectedGetFollowersOfAnUserResult []string
 	}{
 		{
 			name:                               "Success on GetFollowersOfAnUser",
 			expectedStatusCode:                 200,
 			userId:                             "1",
 			expectedGetFollowersOfAnUserError:  nil,
-			expectedGetFollowersOfAnUserResult: []entities.User{},
+			expectedGetFollowersOfAnUserResult: []string{},
 		},
 		{
 			name:                               "Error on GetFollowersOfAnUser",
 			expectedStatusCode:                 500,
 			userId:                             "1",
 			expectedGetFollowersOfAnUserError:  assert.AnError,
-			expectedGetFollowersOfAnUserResult: []entities.User{},
+			expectedGetFollowersOfAnUserResult: []string{},
 		},
 		{
 			name:                               "Error on GetFollowersOfAnUser, empty userId",
 			expectedStatusCode:                 400,
 			userId:                             "",
 			expectedGetFollowersOfAnUserError:  nil,
-			expectedGetFollowersOfAnUserResult: []entities.User{},
+			expectedGetFollowersOfAnUserResult: []string{},
 		},
 	}
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			servicesMock := mocks.NewUsersServiceMock()
-			servicesMock.On("SearchFollowersOfAnUser", mock.AnythingOfType("uint64")).Return(test.expectedGetFollowersOfAnUserResult, test.expectedGetFollowersOfAnUserError)
+			servicesMock.On("SearchFollowersOfAnUser", mock.AnythingOfType("string")).Return(test.expectedGetFollowersOfAnUserResult, test.expectedGetFollowersOfAnUserError)
 			usersController := NewUsersController(servicesMock)
 
 			req, _ := http.NewRequest("GET", "/", nil)
@@ -737,35 +737,35 @@ func TestGetWhoAnUserFollow(t *testing.T) {
 		expectedStatusCode               int
 		userId                           string
 		expectedGetWhoAnUserFollowError  error
-		expectedGetWhoAnUserFollowResult []entities.User
+		expectedGetWhoAnUserFollowResult []string
 	}{
 		{
 			name:                             "Success on GetWhoAnUserFollow",
 			expectedStatusCode:               200,
 			userId:                           "1",
 			expectedGetWhoAnUserFollowError:  nil,
-			expectedGetWhoAnUserFollowResult: []entities.User{},
+			expectedGetWhoAnUserFollowResult: []string{},
 		},
 		{
 			name:                             "Error on GetWhoAnUserFollow",
 			expectedStatusCode:               500,
 			userId:                           "1",
 			expectedGetWhoAnUserFollowError:  assert.AnError,
-			expectedGetWhoAnUserFollowResult: []entities.User{},
+			expectedGetWhoAnUserFollowResult: []string{},
 		},
 		{
 			name:                             "Error on GetWhoAnUserFollow, empty userId",
 			expectedStatusCode:               400,
 			userId:                           "",
 			expectedGetWhoAnUserFollowError:  nil,
-			expectedGetWhoAnUserFollowResult: []entities.User{},
+			expectedGetWhoAnUserFollowResult: []string{},
 		},
 	}
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			servicesMock := mocks.NewUsersServiceMock()
-			servicesMock.On("SearchWhoAnUserFollow", mock.AnythingOfType("uint64")).Return(test.expectedGetWhoAnUserFollowResult, test.expectedGetWhoAnUserFollowError)
+			servicesMock.On("SearchWhoAnUserFollow", mock.AnythingOfType("string")).Return(test.expectedGetWhoAnUserFollowResult, test.expectedGetWhoAnUserFollowError)
 			usersController := NewUsersController(servicesMock)
 
 			req, _ := http.NewRequest("GET", "/", nil)
